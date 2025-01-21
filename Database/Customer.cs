@@ -5,6 +5,7 @@ namespace Database;
 
 public class Customer : BaseEntity, IMailingAddress
 {
+	public int UserId { get; set; }
 	public string BusinessName { get; set; } = default!;
 	public string ContactName { get; set; } = default!;
 	public string Email { get; set; } = default!;
@@ -16,4 +17,5 @@ public class Customer : BaseEntity, IMailingAddress
 	public decimal? HourlyRate { get; set; }
 
 	public ICollection<Project> Projects { get; set; } = [];
+	public ApplicationUser User { get; set; } = default!;
 }

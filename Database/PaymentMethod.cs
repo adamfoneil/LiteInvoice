@@ -35,6 +35,8 @@ public class PaymentMethod : BaseEntity
 	/// PayPal.me or Venmo link
 	/// </summary>
 	public string? Link { get; set; }
+	public bool IsActive { get; set; } = true;
 
+	public ApplicationUser User { get; set; } = default!;
 	public StripeData? StripeConfig { get; set; }
 }

@@ -12,6 +12,13 @@ public class ApplicationUser : IdentityUser, IMailingAddress
 	public string? City { get; set; }
 	public string? State { get; set; }
 	public string? Zip { get; set; }
+	/// <summary>
+	/// default hourly rate on new customers
+	/// </summary>
+	public decimal? HourlyRate { get; set; }
+
+	public ICollection<Customer> Customers { get; set; } = [];
+	public ICollection<PaymentMethod> Projects { get; set; } = [];
 }
 
 public class ApplicationUserConfiguration : IEntityTypeConfiguration<ApplicationUser>
