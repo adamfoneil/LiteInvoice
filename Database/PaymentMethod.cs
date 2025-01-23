@@ -1,4 +1,6 @@
 ﻿using Database.Conventions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Database;
 
@@ -39,4 +41,14 @@ public class PaymentMethod : BaseEntity
 
 	public ApplicationUser User { get; set; } = default!;
 	public StripeData? StripeConfig { get; set; }
+}
+
+public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod>
+{
+	public void Configure(EntityTypeBuilder<PaymentMethod> builder)
+	{
+		builder.HasOne(e => e.User).WithMany(e => e.PaymentMethods).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
+		builder.Property(e => e.Name).HasMaxLength(100);
+		builder.Property(e => e.Link).HasMaxLength(255);
+	}
 }
