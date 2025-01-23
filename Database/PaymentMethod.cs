@@ -7,17 +7,21 @@ namespace Database;
 public enum PaymentMethodType
 {
 	/// <summary>
-	/// customer will send me a check
+	/// customer will send me a check to mailing address
 	/// </summary>
-	Offline,
+	ProfileAddress,
 	/// <summary>
-	/// customer will use my profile info (email, phone number) to pay via services like Zelle
+	/// customer will use my profile email to pay via services like Zelle
 	/// </summary>
-	Profile,
+	ProfileEmail,
+	/// <summary>
+	/// customer will use my profile phone # to pay via services like Zelle
+	/// </summary>
+	ProfilePhone,
 	/// <summary>
 	/// PayPal.me, Venmo -- anything with a clickable link
 	/// </summary>
-	Link,
+	StaticLink,
 	/// <summary>
 	/// credit card payments accepted via Stripe
 	/// </summary>
@@ -36,7 +40,7 @@ public class PaymentMethod : BaseEntity
 	/// <summary>
 	/// PayPal.me or Venmo link
 	/// </summary>
-	public string? Link { get; set; }
+	public string? StaticLink { get; set; }
 	public bool IsActive { get; set; } = true;
 
 	public ApplicationUser User { get; set; } = default!;
@@ -48,7 +52,8 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 	public void Configure(EntityTypeBuilder<PaymentMethod> builder)
 	{
 		builder.HasOne(e => e.User).WithMany(e => e.PaymentMethods).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
-		builder.Property(e => e.Name).HasMaxLength(100);
-		builder.Property(e => e.Link).HasMaxLength(255);
+		builder.Property(e => e.Name).HasMaxLength(50);
+		builder.Property(e => e.StaticLink).HasMaxLength(255);
+		builder.HasIndex(e => new { e.UserId, e.Name }).IsUnique();
 	}
 }

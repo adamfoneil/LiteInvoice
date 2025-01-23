@@ -1,5 +1,7 @@
 ﻿using Database.Conventions;
 using Database.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Database;
 
@@ -18,4 +20,16 @@ public class Customer : BaseEntity, IMailingAddress
 
 	public ICollection<Project> Projects { get; set; } = [];
 	public ApplicationUser User { get; set; } = default!;
+}
+
+public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
+{
+	public void Configure(EntityTypeBuilder<Customer> builder)
+	{
+		builder.HasOne(e => e.User).WithMany(e => e.Customers).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
+		builder.Property(e => e.BusinessName).HasMaxLength(100);
+		builder.Property(e => e.ContactName).HasMaxLength(100);
+		builder.Property(e => e.Email).HasMaxLength(100);
+		builder.Property(e => e.Phone).HasMaxLength(100);
+	}
 }
