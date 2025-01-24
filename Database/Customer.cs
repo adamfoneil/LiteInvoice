@@ -16,9 +16,10 @@ public class Customer : BaseEntity, IMailingAddress
 	public string? City { get; set; } = default!;
 	public string? State { get; set; } = default!;
 	public string? Zip { get; set; } = default!;
-	public decimal? HourlyRate { get; set; }
+	public decimal HourlyRate { get; set; }
 
 	public ICollection<Project> Projects { get; set; } = [];
+	public ICollection<Payment> Payments { get; set; } = [];
 	public ApplicationUser User { get; set; } = default!;
 }
 
