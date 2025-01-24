@@ -21,6 +21,7 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 {
 	public void Configure(EntityTypeBuilder<Invoice> builder)
 	{		
-		builder.HasIndex(e => e.Number).IsUnique();		
+		builder.HasIndex(e => e.Number).IsUnique();
+		builder.HasOne(e => e.Project).WithMany(e => e.Invoices).HasForeignKey(e => e.ProjectId).OnDelete(DeleteBehavior.Restrict);
 	}
 }

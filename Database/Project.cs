@@ -8,6 +8,10 @@ public class Project : BaseEntity
 	public string Name { get; set; } = default!;
 	public string Description { get; set; } = default!;
 	public decimal? HourlyRate { get; set; }
+	/// <summary>
+	/// allow hours and invoicing
+	/// </summary>
+	public bool IsActive { get; set; } = true;
 
 	public Customer Customer { get; set; } = default!;
 	public ICollection<Invoice> Invoices { get; set; } = [];
