@@ -7,6 +7,7 @@ namespace Database;
 
 public class Business : BaseEntity, IMailingAddress
 {
+	public int UserId { get; set; }
 	public string Name { get; set; } = default!;
 	public string? ContactName { get; set; }
 	public string? Address { get; set; }
@@ -24,7 +25,8 @@ public class BusinessConfiguration : IEntityTypeConfiguration<Business>
 {
 	public void Configure(EntityTypeBuilder<Business> builder)
 	{
-		builder.HasIndex(e => e.Name).IsUnique();
+		builder.HasOne<ApplicationUser>().WithMany(u => u.Businesses).HasForeignKey(e => e.UserId).HasPrincipalKey(u => u.UserId).OnDelete(DeleteBehavior.Restrict);
+		builder.HasIndex(e => new { e.UserId, e.Name }).IsUnique();
 		builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
 		builder.Property(e => e.HourlyRate).HasColumnType("money");
 	}
