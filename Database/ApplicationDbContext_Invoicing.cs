@@ -11,7 +11,7 @@ public partial class ApplicationDbContext
 
 		var project = await Projects
 			.Include(p => p.Customer)
-			.ThenInclude(c => c.User)
+			.ThenInclude(c => c.Business)
 			.Where(p => p.Id == projectId)
 			.SingleOrDefaultAsync() ?? throw new Exception("Project not found");
 
@@ -21,7 +21,7 @@ public partial class ApplicationDbContext
 
 		var invoice = new Invoice()
 		{
-			Number = project.Customer.User.NextInvoiceNumber,
+			Number = project.Customer.Business.NextInvoiceNumber,
 			ProjectId = projectId,
 			AmountDue = amount,
 			Date = DateTime.Now,
@@ -29,7 +29,7 @@ public partial class ApplicationDbContext
 			Data = JsonSerializer.Serialize(new InvoiceData() { Hours = hours, Expenses = expenses })
 		};
 
-		project.Customer.User.NextInvoiceNumber++;
+		project.Customer.Business.NextInvoiceNumber++;
 		Invoices.Add(invoice);
 		Hours.RemoveRange(hours);
 		Expenses.RemoveRange(expenses);

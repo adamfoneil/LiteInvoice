@@ -7,9 +7,9 @@ namespace Database;
 
 public class Customer : BaseEntity, IMailingAddress
 {
-	public int UserId { get; set; }
-	public string BusinessName { get; set; } = default!;
-	public string ContactName { get; set; } = default!;
+	public int BusinessId { get; set; }
+	public string Name { get; set; } = default!;
+	public string Contact { get; set; } = default!;
 	public string Email { get; set; } = default!;
 	public string Phone { get; set; } = default!;
 	public string? Address { get; set; } = default!;
@@ -18,18 +18,19 @@ public class Customer : BaseEntity, IMailingAddress
 	public string? Zip { get; set; } = default!;
 	public decimal HourlyRate { get; set; }
 
+	public Business Business { get; set; } = default!;
 	public ICollection<Project> Projects { get; set; } = [];
-	public ICollection<Payment> Payments { get; set; } = [];
-	public ApplicationUser User { get; set; } = default!;
+	public ICollection<Payment> Payments { get; set; } = [];	
 }
 
 public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 {
 	public void Configure(EntityTypeBuilder<Customer> builder)
 	{
-		builder.HasOne(e => e.User).WithMany(e => e.Customers).HasForeignKey(e => e.UserId).OnDelete(DeleteBehavior.Restrict);
-		builder.Property(e => e.BusinessName).HasMaxLength(100);
-		builder.Property(e => e.ContactName).HasMaxLength(100);
+		builder.HasIndex(e => new { e.BusinessId, e.Name }).IsUnique();
+		builder.HasOne(e => e.Business).WithMany(e => e.Customers).HasForeignKey(e => e.BusinessId).OnDelete(DeleteBehavior.Restrict);
+		builder.Property(e => e.Name).HasMaxLength(100);
+		builder.Property(e => e.Contact).HasMaxLength(100);
 		builder.Property(e => e.Email).HasMaxLength(100);
 		builder.Property(e => e.Phone).HasMaxLength(100);
 	}
