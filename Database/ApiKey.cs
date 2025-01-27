@@ -5,18 +5,20 @@ namespace Database;
 
 public class ApiKey : BaseEntity
 {
-	public int UserId { get; set; }
+	public int BusinessId { get; set; }
 	public string Key { get; set; } = ApiKeyUtil.Generate(32);
 	public DateTime? LastUsed { get; set; }
 	public bool IsEnabled { get; set; } = true;
 
-	public ApplicationUser User { get; set; } = default!;
+	public Business Business { get; set; } = default!;
 }
 
 public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKey>
 {
 	public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<ApiKey> builder)
-	{		
-		builder.HasOne(e => e.User).WithMany(u => u.ApiKeys).HasForeignKey(e => e.UserId).HasPrincipalKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
+	{
+		builder.HasIndex(e => e.Key).IsUnique();
+		builder.Property(e => e.Key).HasMaxLength(32).IsRequired();
+		builder.HasOne(e => e.Business).WithMany(u => u.ApiKeys).HasForeignKey(e => e.BusinessId).HasPrincipalKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
 	}
 }

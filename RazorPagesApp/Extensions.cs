@@ -1,54 +1,65 @@
-﻿using Database.Conventions;
-using HashidsNet;
+﻿using Database;
+using Database.Conventions;
 using Microsoft.EntityFrameworkCore;
 
 namespace RazorPagesApp;
 
 public static class Extensions
 {
-	public static void MapCrudApi<TDbContext, TEntity>(this WebApplication app, string route, Action<RouteHandlerBuilder>? builderAction)
-		where TDbContext : DbContext
+	public static void MapCrudApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId, Action<RouteHandlerBuilder>? builderAction = null)		
 		where TEntity : BaseEntity
 	{		
-		var hashIds = app.Services.GetRequiredService<Hashids>();		
-
-		var builder = app.MapGet($"{route}/{{id}}", async (TDbContext context, string id) =>
+		var builder = app.MapGet($"{route}/{{id}}", async (HttpContext httpContext, ApplicationDbContext db, int id) =>
 		{
-			var decodedId = hashIds.DecodeSingle(id);
-			var entity = await context.Set<TEntity>().FindAsync(decodedId);
+			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
+			var entity = await query.Invoke(db, id).AsSplitQuery().SingleOrDefaultAsync();
+
 			if (entity is null) return Results.NotFound();
+
+			var businessId = getBusinessId(entity);
+			if (businessId != business.Id) return Results.Forbid();
+
 			return Results.Ok(entity);
 		});
 
 		builderAction?.Invoke(builder);
 
-		builder = app.MapPost(route, async (TDbContext context, TEntity entity) =>
+		builder = app.MapPost(route, async (HttpContext httpContext, ApplicationDbContext db, TEntity entity) =>
 		{
-			context.Set<TEntity>().Add(entity);
-			await context.SaveChangesAsync();
-			return Results.Created($"{route}/{hashIds.Encode(entity.Id)}", entity);			
+			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
+			if (getBusinessId(entity) != business.Id) return Results.Forbid();
+			db.Set<TEntity>().Add(entity);
+			await db.SaveChangesAsync();
+			return Results.Created($"{route}/{entity.Id}", entity);			
 		});
 
 		builderAction?.Invoke(builder);
 
-		builder = app.MapPut($"{route}/{{id}}", async (TDbContext context, string id, TEntity entity) =>
+		builder = app.MapPut($"{route}/{{id}}", async (HttpContext httpContext, ApplicationDbContext db, int id, TEntity entity) =>
 		{
-			var decodedId = hashIds.DecodeSingle(id);
-			if (decodedId != entity.Id) return Results.BadRequest();
-			context.Set<TEntity>().Update(entity);
-			await context.SaveChangesAsync();
+			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
+			if (id != entity.Id) return Results.BadRequest();
+
+			var existingEntity = await query.Invoke(db, id).AsSplitQuery().SingleOrDefaultAsync();
+			if (getBusinessId(entity) != business.Id) return Results.Forbid();
+
+			db.Set<TEntity>().Update(entity);
+			await db.SaveChangesAsync();
 			return Results.Ok(entity);
 		});
 
 		builderAction?.Invoke(builder);
 
-		builder = app.MapDelete($"{route}/{{id}}", async (TDbContext context, string id) =>
+		builder = app.MapDelete($"{route}/{{id}}", async (HttpContext httpContext, ApplicationDbContext db, int id) =>
 		{
-			var decodedId = hashIds.DecodeSingle(id);
-			var entity = await context.Set<TEntity>().FindAsync(decodedId);
+			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
+			var entity = await query.Invoke(db, id).AsSplitQuery().SingleOrDefaultAsync();
+			
 			if (entity is null) return Results.NotFound();
-			context.Set<TEntity>().Remove(entity);
-			await context.SaveChangesAsync();
+			if (getBusinessId(entity) != business.Id) return Results.Forbid();
+
+			db.Set<TEntity>().Remove(entity);
+			await db.SaveChangesAsync();
 			return Results.NoContent();
 		});
 

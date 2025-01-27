@@ -17,6 +17,7 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
 	public DbSet<Payment> Payments { get; set; }
 	public DbSet<HoursEntry> Hours { get; set; }
 	public DbSet<ExpenseEntry> Expenses { get; set; }
+	public DbSet<ApiKey> ApiKeys { get; set; }
 
 	protected override void OnModelCreating(ModelBuilder builder)
 	{

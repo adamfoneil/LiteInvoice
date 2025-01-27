@@ -26,25 +26,6 @@ builder.Services
 builder.Services.Configure<MailerSendOptions>(builder.Configuration.GetSection("MailerSend"));
 builder.Services.AddSingleton<MailerSendClient>();
 
-/*
- * this breaks interactive logins, so commented out for now
-builder.Services.AddAuthentication(options =>
-{
-	options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-	options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-}).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-{
-	var key = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret not found.");
-	options.TokenValidationParameters = new()
-	{
-		ValidateIssuer = false,
-		ValidateAudience = false,
-		ValidateIssuerSigningKey = true,
-		IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
-	};
-}).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
-*/
-
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
@@ -67,12 +48,38 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseApiKeyMiddleware();
 
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
-app.MapIdentityApi<ApplicationUser>();
-app.MapCrudApi<ApplicationDbContext, Business>("/api/business", b => b.RequireAuthorization());
+app.MapCrudApi("/api/businesses", 
+	(db, id) => db.Businesses.Where(row => row.Id == id), 
+	b => b.Id);
+
+app.MapCrudApi("/api/customers", 
+	(db, id) => db.Customers.Where(b => b.Id == id), 
+	c => c.BusinessId);
+
+app.MapCrudApi("/api/projects", 
+	(db, id) => db.Projects.Include(p => p.Customer).Where(p => p.Id == id), 
+	p => p.Customer.BusinessId);
+
+app.MapCrudApi("/api/invoices", 
+	(db, id) => db.Invoices.Include(i => i.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id), 
+	i => i.Project.Customer.BusinessId);
+
+app.MapCrudApi("/api/payment-methods", 
+	(db, id) => db.PaymentMethods.Where(row => row.Id == id), 
+	pm => pm.BusinessId);
+
+app.MapCrudApi("/api/expenses", 
+	(db, id) => db.Expenses.Include(e => e.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id), 
+	e => e.Project.Customer.BusinessId);
+
+app.MapCrudApi("/api/hours", 
+	(db, id) => db.Hours.Include(h => h.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id), 
+	h => h.Project.Customer.BusinessId);
 
 app.Run();

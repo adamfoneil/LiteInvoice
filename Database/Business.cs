@@ -19,6 +19,7 @@ public class Business : BaseEntity, IMailingAddress
 
 	public ICollection<Customer> Customers { get; set; } = [];
 	public ICollection<PaymentMethod> PaymentMethods { get; set; } = [];
+	public ICollection<ApiKey> ApiKeys { get; set; } = [];
 }
 
 public class BusinessConfiguration : IEntityTypeConfiguration<Business>
