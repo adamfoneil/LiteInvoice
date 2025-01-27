@@ -54,28 +54,52 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
-app.MapCrudApi("/api/businesses", 
-	(db, id) => db.Businesses.Where(row => row.Id == id), 
+app.MapCrudApi("/api/businesses",
+	(db, id) => db.Businesses.Where(row => row.Id == id),
 	b => b.Id);
 
-app.MapCrudApi("/api/customers", 
-	(db, id) => db.Customers.Where(b => b.Id == id), 
+app.MapUserScopeQueryApi("/api/businesses",
+	(db, userId) => db.Businesses.Where(b => b.UserId == userId),
+	b => b.Id);
+
+app.MapCrudApi("/api/customers",
+	(db, id) => db.Customers.Where(b => b.Id == id),
 	c => c.BusinessId);
 
-app.MapCrudApi("/api/projects", 
-	(db, id) => db.Projects.Include(p => p.Customer).Where(p => p.Id == id), 
+app.MapBusinessScopeQueryApi("/api/customers",
+	(db, businessId) => db.Customers.Where(c => c.BusinessId == businessId), 
+	c => c.BusinessId);
+
+app.MapCrudApi("/api/projects",
+	(db, id) => db.Projects.Include(p => p.Customer).Where(p => p.Id == id),
 	p => p.Customer.BusinessId);
 
-app.MapCrudApi("/api/payment-methods", 
-	(db, id) => db.PaymentMethods.Where(row => row.Id == id), 
+app.MapRouteQueryApi("/api/customers/{id}/projects",
+	(db, id) => db.Projects.Include(p => p.Customer).Where(p => p.CustomerId == id),
+	p => p.Customer.BusinessId);
+
+app.MapCrudApi("/api/payment-methods",
+	(db, id) => db.PaymentMethods.Where(row => row.Id == id),
 	pm => pm.BusinessId);
 
-app.MapCrudApi("/api/expenses", 
-	(db, id) => db.Expenses.Include(e => e.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id), 
+app.MapBusinessScopeQueryApi("/api/payment-methods",
+	(db, businessId) => db.PaymentMethods.Where(pm => pm.BusinessId == businessId),
+	pm => pm.BusinessId);
+
+app.MapCrudApi("/api/expenses",
+	(db, id) => db.Expenses.Include(e => e.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id),
 	e => e.Project.Customer.BusinessId);
 
-app.MapCrudApi("/api/hours", 
-	(db, id) => db.Hours.Include(h => h.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id), 
+app.MapRouteQueryApi("/api/projects/{id}/expenses",
+	(db, id) => db.Expenses.Include(e => e.Project).ThenInclude(p => p.Customer).Where(e => e.ProjectId == id),
+	e => e.Project.Customer.BusinessId);
+
+app.MapCrudApi("/api/hours",
+	(db, id) => db.Hours.Include(h => h.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id),
+	h => h.Project.Customer.BusinessId);
+
+app.MapRouteQueryApi("/api/projects/{id}/hours",
+	(db, id) => db.Hours.Include(h => h.Project).ThenInclude(p => p.Customer).Where(h => h.ProjectId == id),
 	h => h.Project.Customer.BusinessId);
 
 app.Run();

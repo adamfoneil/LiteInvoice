@@ -1,14 +1,15 @@
 ﻿using Database;
 using Database.Conventions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace RazorPagesApp;
 
 public static class Extensions
 {
-	public static void MapCrudApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId, Action<RouteHandlerBuilder>? builderAction = null)		
+	public static void MapCrudApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId)
 		where TEntity : BaseEntity
-	{		
+	{
 		var builder = app.MapGet($"{route}/{{id}}", async (HttpContext httpContext, ApplicationDbContext db, int id) =>
 		{
 			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
@@ -22,8 +23,6 @@ public static class Extensions
 			return Results.Ok(entity);
 		});
 
-		builderAction?.Invoke(builder);
-
 		builder = app.MapPost(route, async (HttpContext httpContext, ApplicationDbContext db, TEntity entity) =>
 		{
 			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
@@ -32,8 +31,6 @@ public static class Extensions
 			await db.SaveChangesAsync();
 			return Results.Created($"{route}/{entity.Id}", entity);			
 		});
-
-		builderAction?.Invoke(builder);
 
 		builder = app.MapPut($"{route}/{{id}}", async (HttpContext httpContext, ApplicationDbContext db, int id, TEntity entity) =>
 		{
@@ -48,8 +45,6 @@ public static class Extensions
 			return Results.Ok(entity);
 		});
 
-		builderAction?.Invoke(builder);
-
 		builder = app.MapDelete($"{route}/{{id}}", async (HttpContext httpContext, ApplicationDbContext db, int id) =>
 		{
 			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
@@ -61,8 +56,41 @@ public static class Extensions
 			db.Set<TEntity>().Remove(entity);
 			await db.SaveChangesAsync();
 			return Results.NoContent();
-		});
+		});		
+	}
 
+	public static void MapRouteQueryApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId, Action<RouteHandlerBuilder>? builderAction = null)
+		where TEntity : BaseEntity
+	{
+		var builder = app.MapGet(route, async (HttpContext httpContext, ApplicationDbContext db, int id) =>
+		{
+			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
+			var entities = await query.Invoke(db, id).AsSplitQuery().ToArrayAsync();
+			if (!entities.All(entities => getBusinessId(entities) == business.Id)) return Results.Forbid();
+			return Results.Ok(entities);
+		});
 		builderAction?.Invoke(builder);
+	}
+
+	public static void MapBusinessScopeQueryApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId)
+		where TEntity : BaseEntity
+	{
+		var builder = app.MapGet(route, async (HttpContext httpContext, ApplicationDbContext db) =>
+		{
+			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
+			var entities = await query.Invoke(db, business.Id).AsSplitQuery().ToArrayAsync();
+			if (!entities.All(entities => getBusinessId(entities) == business.Id)) return Results.Forbid();
+			return Results.Ok(entities);
+		});		
+	}
+
+	public static void MapUserScopeQueryApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId, Action<RouteHandlerBuilder>? builderAction = null)
+	{
+		var builder = app.MapGet(route, async (HttpContext httpContext, ApplicationDbContext db) =>
+		{
+			var business = httpContext.Items["business"] as Business ?? throw new Exception("business not found");
+			var entities = await query.Invoke(db, business.UserId).ToArrayAsync();			
+			return Results.Ok(entities);
+		});
 	}
 }
