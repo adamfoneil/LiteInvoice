@@ -7,6 +7,9 @@ namespace RazorPagesApp;
 
 public static class Extensions
 {
+	/// <summary>
+	/// map endpoints for managing individual entities
+	/// </summary>
 	public static void MapCrudApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId)
 		where TEntity : BaseEntity
 	{
@@ -59,6 +62,9 @@ public static class Extensions
 		});		
 	}
 
+	/// <summary>
+	/// map endpoints for querying entities within an arbitrary parent id scope
+	/// </summary>
 	public static void MapRouteQueryApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId, Action<RouteHandlerBuilder>? builderAction = null)
 		where TEntity : BaseEntity
 	{
@@ -72,6 +78,9 @@ public static class Extensions
 		builderAction?.Invoke(builder);
 	}
 
+	/// <summary>
+	/// map endpoints for querying entities within the current business scope
+	/// </summary>	
 	public static void MapBusinessScopeQueryApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId)
 		where TEntity : BaseEntity
 	{
@@ -84,6 +93,9 @@ public static class Extensions
 		});		
 	}
 
+	/// <summary>
+	/// map endpoints for querying entities within the current API key user scope
+	/// </summary>	
 	public static void MapUserScopeQueryApi<TEntity>(this WebApplication app, string route, Func<ApplicationDbContext, int, IQueryable<TEntity>> query, Func<TEntity, int> getBusinessId, Action<RouteHandlerBuilder>? builderAction = null)
 	{
 		var builder = app.MapGet(route, async (HttpContext httpContext, ApplicationDbContext db) =>
