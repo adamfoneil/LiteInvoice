@@ -66,10 +66,6 @@ app.MapCrudApi("/api/projects",
 	(db, id) => db.Projects.Include(p => p.Customer).Where(p => p.Id == id), 
 	p => p.Customer.BusinessId);
 
-app.MapCrudApi("/api/invoices", 
-	(db, id) => db.Invoices.Include(i => i.Project).ThenInclude(p => p.Customer).Where(row => row.Id == id), 
-	i => i.Project.Customer.BusinessId);
-
 app.MapCrudApi("/api/payment-methods", 
 	(db, id) => db.PaymentMethods.Where(row => row.Id == id), 
 	pm => pm.BusinessId);
