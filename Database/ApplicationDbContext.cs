@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Database.Conventions;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using System.Reflection.Emit;
 
 namespace Database;
 
@@ -23,6 +26,20 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
 	{
 		base.OnModelCreating(builder);
 		builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+		foreach (var entityType in builder.Model.GetEntityTypes())
+		{
+			if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+			{
+				builder.Entity(entityType.ClrType)
+					.Property(nameof(BaseEntity.CreatedAt))
+					.HasColumnType("timestamp without time zone");
+
+				builder.Entity(entityType.ClrType)
+					.Property(nameof(BaseEntity.ModifiedAt))
+					.HasColumnType("timestamp without time zone");
+			}
+		}
 	}
 }
 

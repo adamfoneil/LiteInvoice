@@ -14,13 +14,15 @@ builder.Services.AddHttpClient();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Singleton);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddScoped<ApplicationUserManager>();
 
 var hashidsSalt = builder.Configuration["Hashids:Salt"] ?? throw new InvalidOperationException("Hashids:Salt not found.");
 var hashidsMinLength = int.Parse(builder.Configuration["Hashids:MinLength"] ?? "8");
 builder.Services.AddSingleton(sp => new Hashids(hashidsSalt, hashidsMinLength));
 
 builder.Services
-	.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)		
+	.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+	.AddUserManager<ApplicationUserManager>()
 	.AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.Configure<MailerSendOptions>(builder.Configuration.GetSection("MailerSend"));
