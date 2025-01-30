@@ -66,7 +66,7 @@ namespace Database.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.ToTable("ApiKeys");
+                    b.ToTable("ApiKeys", (string)null);
                 });
 
             modelBuilder.Entity("Database.ApplicationUser", b =>
@@ -202,7 +202,7 @@ namespace Database.Migrations
                     b.HasIndex("UserId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Businesses");
+                    b.ToTable("Businesses", (string)null);
                 });
 
             modelBuilder.Entity("Database.Customer", b =>
@@ -271,7 +271,7 @@ namespace Database.Migrations
                     b.HasIndex("BusinessId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("Database.ExpenseEntry", b =>
@@ -317,7 +317,7 @@ namespace Database.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Expenses");
+                    b.ToTable("Expenses", (string)null);
                 });
 
             modelBuilder.Entity("Database.HoursEntry", b =>
@@ -366,7 +366,7 @@ namespace Database.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Hours");
+                    b.ToTable("Hours", (string)null);
                 });
 
             modelBuilder.Entity("Database.Invoice", b =>
@@ -419,7 +419,7 @@ namespace Database.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Invoices");
+                    b.ToTable("Invoices", (string)null);
                 });
 
             modelBuilder.Entity("Database.InvoiceLink", b =>
@@ -457,7 +457,7 @@ namespace Database.Migrations
 
                     b.HasIndex("InvoiceId");
 
-                    b.ToTable("InvoicesLinks");
+                    b.ToTable("InvoicesLinks", (string)null);
                 });
 
             modelBuilder.Entity("Database.Payment", b =>
@@ -508,7 +508,7 @@ namespace Database.Migrations
 
                     b.HasIndex("InvoiceId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("Database.PaymentMethod", b =>
@@ -566,7 +566,7 @@ namespace Database.Migrations
                     b.HasIndex("BusinessId", "Name")
                         .IsUnique();
 
-                    b.ToTable("PaymentMethods");
+                    b.ToTable("PaymentMethods", (string)null);
                 });
 
             modelBuilder.Entity("Database.Project", b =>
@@ -615,7 +615,7 @@ namespace Database.Migrations
                     b.HasIndex("CustomerId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("Database.StripeData", b =>
@@ -637,7 +637,7 @@ namespace Database.Migrations
 
                     b.HasKey("PaymentMethodId");
 
-                    b.ToTable("StripeData");
+                    b.ToTable("StripeData", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

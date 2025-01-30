@@ -10,6 +10,8 @@ namespace Database;
 
 public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
+	public string? CurrentUser { get; set; }
+
 	public DbSet<Business> Businesses { get; set; }
 	public DbSet<Customer> Customers { get; set; }
 	public DbSet<Project> Projects { get; set; }
@@ -40,6 +42,20 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
 					.HasColumnType("timestamp without time zone");
 			}
 		}
+	}
+
+	public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+	{
+		foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+		{
+			if (entry.State == EntityState.Modified)
+			{
+				entry.Entity.ModifiedBy = CurrentUser ?? "system";
+				entry.Entity.ModifiedAt = DateTime.Now;
+			}			
+		}
+
+		return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
 	}
 }
 

@@ -30,7 +30,12 @@ public class ApiKeyMiddleware(RequestDelegate next)
 		}
 
 		using var db = dbFactory.CreateDbContext();
-		var keyRow = await db.ApiKeys.Include(ak => ak.Business).FirstOrDefaultAsync(u => u.Key == apiKey);
+		var useKey = apiKey.First();
+		var keyRow = await db.ApiKeys
+			.Include(ak => ak.Business)
+			.ThenInclude(b => b.User)
+			.FirstOrDefaultAsync(u => u.Key == useKey);
+
 		if (keyRow is null || !keyRow.IsEnabled)
 		{
 			context.Response.StatusCode = StatusCodes.Status401Unauthorized;

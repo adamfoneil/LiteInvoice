@@ -17,6 +17,7 @@ public class Business : BaseEntity, IMailingAddress
 	public int NextInvoiceNumber { get; set; } = 1000;
 	public decimal? HourlyRate { get; set; }
 
+	public ApplicationUser User { get; set; } = default!;
 	public ICollection<Customer> Customers { get; set; } = [];
 	public ICollection<PaymentMethod> PaymentMethods { get; set; } = [];
 	public ICollection<ApiKey> ApiKeys { get; set; } = [];
@@ -26,7 +27,7 @@ public class BusinessConfiguration : IEntityTypeConfiguration<Business>
 {
 	public void Configure(EntityTypeBuilder<Business> builder)
 	{
-		builder.HasOne<ApplicationUser>().WithMany(u => u.Businesses).HasForeignKey(e => e.UserId).HasPrincipalKey(u => u.UserId).OnDelete(DeleteBehavior.Restrict);
+		builder.HasOne(e => e.User).WithMany(u => u.Businesses).HasForeignKey(e => e.UserId).HasPrincipalKey(u => u.UserId).OnDelete(DeleteBehavior.Restrict);
 		builder.HasIndex(e => new { e.UserId, e.Name }).IsUnique();
 		builder.Property(e => e.Name).HasMaxLength(50).IsRequired();
 		builder.Property(e => e.HourlyRate).HasColumnType("money");
