@@ -32,7 +32,7 @@ public class ApplicationUserManager(
 			{
 				Name = user.UserName!,
 				UserId = userId.UserId,
-				ApiKeys = [ new() ]
+				ApiKeys = [ new() { Key = ApiKeyUtil.Generate(32) } ]
 			});
 
 			await db.SaveChangesAsync();

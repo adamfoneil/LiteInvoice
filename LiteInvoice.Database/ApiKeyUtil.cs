@@ -3,7 +3,7 @@ using System.Text;
 
 namespace LiteInvoice.Database;
 
-internal static class ApiKeyUtil
+public static class ApiKeyUtil
 {
 	public static string Generate(int length = 32)
 	{
