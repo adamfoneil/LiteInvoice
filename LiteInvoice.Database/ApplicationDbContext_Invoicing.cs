@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace Database;
+namespace LiteInvoice.Database;
 
 public partial class ApplicationDbContext
 {
@@ -36,7 +36,7 @@ public partial class ApplicationDbContext
 		await SaveChangesAsync();
 
 		return invoice;
-	}	
+	}
 
 	public async Task DeleteInvoiceAsync(int invoiceId)
 	{

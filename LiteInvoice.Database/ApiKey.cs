@@ -1,7 +1,7 @@
 ﻿using Database.Conventions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Database;
+namespace LiteInvoice.Database;
 
 public class ApiKey : BaseEntity
 {

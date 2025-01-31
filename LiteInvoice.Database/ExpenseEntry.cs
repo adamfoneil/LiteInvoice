@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Database;
+namespace LiteInvoice.Database;
 
 public class ExpenseEntry : BaseEntity
 {

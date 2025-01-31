@@ -1,4 +1,4 @@
-using Database;
+using LiteInvoice.Database;
 using HashidsNet;
 using MailerSend;
 using Microsoft.EntityFrameworkCore;

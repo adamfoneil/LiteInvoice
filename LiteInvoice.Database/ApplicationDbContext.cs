@@ -1,4 +1,5 @@
 ﻿using Database.Conventions;
+using DtoBuilder.Abstractions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.Reflection.Emit;
 
-namespace Database;
+namespace LiteInvoice.Database;
 
 public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
@@ -72,4 +73,23 @@ public class AppDbFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 		optionsBuilder.UseNpgsql(connectionString);
 		return new ApplicationDbContext(optionsBuilder.Options);
 	}
+}
+
+public class AppDtoTypes : IDtoTypes
+{
+	public Type[] SourceTypes => [
+		typeof(Business),
+		typeof(Customer),
+		typeof(Project),
+		typeof(Invoice),
+		typeof(PaymentMethod),
+		typeof(InvoiceLink),
+		typeof(StripeData),
+		typeof(Payment),
+		typeof(HoursEntry),
+		typeof(ExpenseEntry),
+		typeof(ApiKey)
+	];
+
+	public string OutputPath => "../LiteInvoice.Shared";
 }

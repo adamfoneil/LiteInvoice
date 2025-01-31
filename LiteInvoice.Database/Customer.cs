@@ -1,9 +1,9 @@
 ﻿using Database.Conventions;
 using Database.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore;
 
-namespace Database;
+namespace LiteInvoice.Database;
 
 public class Customer : BaseEntity, IMailingAddress
 {
@@ -20,7 +20,7 @@ public class Customer : BaseEntity, IMailingAddress
 
 	public Business Business { get; set; } = default!;
 	public ICollection<Project> Projects { get; set; } = [];
-	public ICollection<Payment> Payments { get; set; } = [];	
+	public ICollection<Payment> Payments { get; set; } = [];
 }
 
 public class CustomerConfiguration : IEntityTypeConfiguration<Customer>

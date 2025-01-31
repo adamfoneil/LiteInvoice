@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Database\Database.csproj" />
+    <ProjectReference Include="..\LiteInvoice.Database\LiteInvoice.Database.csproj" />
   </ItemGroup>
 
 </Project>

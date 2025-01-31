@@ -1,5 +1,5 @@
-﻿using Database;
-using Database.Conventions;
+﻿using Database.Conventions;
+using LiteInvoice.Database;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 

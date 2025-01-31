@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace Database;
+namespace LiteInvoice.Database;
 
 internal static class ApiKeyUtil
 {
