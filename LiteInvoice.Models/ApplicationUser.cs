@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿namespace LiteInvoice.Database;
 
-namespace LiteInvoice.Database;
-
-public class ApplicationUser : IdentityUser
+public class ApplicationUser
 {
 	public int UserId { get; set; }
 	public string? TimeZoneId { get; set; }

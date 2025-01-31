@@ -1,6 +1,4 @@
 ﻿using Database.Conventions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace LiteInvoice.Database;
 
@@ -19,15 +17,4 @@ public class Invoice : BaseEntity
 	public Project Project { get; set; } = default!;
 	public ICollection<InvoiceLink> Links { get; set; } = [];
 	public ICollection<Payment> Payments { get; set; } = [];
-}
-
-public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
-{
-	public void Configure(EntityTypeBuilder<Invoice> builder)
-	{
-		builder.HasIndex(e => e.Number).IsUnique();
-		builder.Property(e => e.Data).IsRequired();
-		builder.Property(e => e.Description).HasMaxLength(255);
-		builder.HasOne(e => e.Project).WithMany(e => e.Invoices).HasForeignKey(e => e.ProjectId).OnDelete(DeleteBehavior.Restrict);
-	}
 }

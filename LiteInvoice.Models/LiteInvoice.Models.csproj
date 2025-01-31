@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\LiteInvoice.Database\ApiKey.cs" Link="ApiKey.cs" />
+    <Compile Include="..\LiteInvoice.Database\Business.cs" Link="Business.cs" />
+    <Compile Include="..\LiteInvoice.Database\Conventions\BaseEntity.cs" Link="Conventions\BaseEntity.cs" />
+    <Compile Include="..\LiteInvoice.Database\Customer.cs" Link="Customer.cs" />
+    <Compile Include="..\LiteInvoice.Database\ExpenseEntry.cs" Link="ExpenseEntry.cs" />
+    <Compile Include="..\LiteInvoice.Database\HoursEntry.cs" Link="HoursEntry.cs" />
+    <Compile Include="..\LiteInvoice.Database\Interfaces\IMailingAddress.cs" Link="Interfaces\IMailingAddress.cs" />
+    <Compile Include="..\LiteInvoice.Database\Invoice.cs" Link="Invoice.cs" />
+    <Compile Include="..\LiteInvoice.Database\InvoiceLink.cs" Link="InvoiceLink.cs" />
+    <Compile Include="..\LiteInvoice.Database\Payment.cs" Link="Payment.cs" />
+    <Compile Include="..\LiteInvoice.Database\PaymentMethod.cs" Link="PaymentMethod.cs" />
+    <Compile Include="..\LiteInvoice.Database\Project.cs" Link="Project.cs" />
+    <Compile Include="..\LiteInvoice.Database\StripeData.cs" Link="StripeData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Conventions\" />
+    <Folder Include="Interfaces\" />
+  </ItemGroup>
+
+</Project>
