@@ -4,6 +4,8 @@ using MailerSend;
 using Microsoft.EntityFrameworkCore;
 using RazorPagesApp;
 using Scalar.AspNetCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +17,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Singleton);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<ApplicationUserManager>();
+builder.Services.Configure<JsonSerializerOptions>(options =>
+{
+	options.WriteIndented = true;
+	options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+	options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
 var hashidsSalt = builder.Configuration["Hashids:Salt"] ?? throw new InvalidOperationException("Hashids:Salt not found.");
 var hashidsMinLength = int.Parse(builder.Configuration["Hashids:MinLength"] ?? "8");
@@ -61,7 +69,7 @@ app.MapCrudApi("/api/businesses",
 	b => b.Id);
 
 app.MapUserScopeQueryApi("/api/businesses",
-	(db, userId) => db.Businesses.Where(b => b.UserId == userId),
+	(db, userId) => db.Businesses.Include(b => b.PaymentMethods).Include(b => b.Customers).AsSplitQuery().Where(b => b.UserId == userId),
 	b => b.Id);
 
 app.MapCrudApi("/api/customers",
@@ -69,11 +77,11 @@ app.MapCrudApi("/api/customers",
 	c => c.BusinessId);
 
 app.MapBusinessScopeQueryApi("/api/customers",
-	(db, businessId) => db.Customers.Where(c => c.BusinessId == businessId), 
+	(db, businessId) => db.Customers.Include(c => c.Projects).Where(c => c.BusinessId == businessId), 
 	c => c.BusinessId);
 
 app.MapCrudApi("/api/projects",
-	(db, id) => db.Projects.Include(p => p.Customer).Where(p => p.Id == id),
+	(db, id) => db.Projects.Include(p => p.Customer).Include(p => p.Hours).Include(p => p.Expenses).Where(p => p.Id == id),
 	p => p.Customer.BusinessId);
 
 app.MapRouteQueryApi("/api/customers/{id}/projects",

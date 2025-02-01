@@ -42,7 +42,7 @@ public interface ILiteInvoiceApi
 	Task DeleteCustomerAsync([Header("ApiKey")] string apiKey, int id);
 
 	[Get("/api/customers/{id}/projects")]
-	Task<Project> GetProjectsAsync([Header("ApiKey")] string apiKey, int customerId);
+	Task<Project> GetProjectsAsync([Header("ApiKey")] string apiKey, int id);
 
 	[Post("/api/projects")]
 	Task<Project> AddProjectAsync([Header("ApiKey")] string apiKey, Project project);
