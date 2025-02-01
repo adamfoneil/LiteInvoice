@@ -1,4 +1,4 @@
-﻿using ConsoleApp;
+﻿using LiteInvoice.Client.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Refit;
 
@@ -10,7 +10,7 @@ var config = new ConfigurationBuilder()
 var api = RestService.For<ILiteInvoiceApi>(config["BaseUrl"]);
 var apiKey = config["MyApiKey"];
 
-var businesses = await api.GetMyBusinessesAsync(apiKey);
+var businesses = await api.GetBusinessesAsync(apiKey);
 
 foreach (var b in businesses) Console.WriteLine(b.Name);
 

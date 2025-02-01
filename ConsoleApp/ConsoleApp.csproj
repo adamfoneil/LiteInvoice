@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LiteInvoice.Models\LiteInvoice.Models.csproj" />
+    <ProjectReference Include="..\LiteInvoice.Client\LiteInvoice.Client.csproj" />
   </ItemGroup>
 
   <ItemGroup>
