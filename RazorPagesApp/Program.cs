@@ -34,7 +34,7 @@ builder.Services.AddSingleton(sp => new Hashids(hashidsSalt, hashidsMinLength));
 
 builder.Services
 	.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-	.AddUserManager<ApplicationUserManager>()
+	.AddUserManager<ApplicationUserManager>()	
 	.AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.Configure<MailerSendOptions>(builder.Configuration.GetSection("MailerSend"));

@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RazorPagesApp;
 
-public static class Extensions
+public static class EndpointExtensions
 {
 	/// <summary>
 	/// map endpoints for managing individual entities

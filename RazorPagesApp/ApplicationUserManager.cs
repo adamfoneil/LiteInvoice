@@ -19,6 +19,8 @@ public class ApplicationUserManager(
 {
 	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;
 
+	public const string UserIdClaimType = "UserId";
+
 	public override async Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
 	{
 		var result = await base.CreateAsync(user, password);
@@ -33,6 +35,13 @@ public class ApplicationUserManager(
 				Name = user.UserName!,
 				UserId = userId.UserId,
 				ApiKeys = [ new() { Key = ApiKeyUtil.Generate(32) } ]
+			});
+
+			db.UserClaims.Add(new IdentityUserClaim<string>()
+			{
+				UserId = userId.Id,
+				ClaimType = UserIdClaimType,
+				ClaimValue = userId.UserId.ToString()
 			});
 
 			await db.SaveChangesAsync();
