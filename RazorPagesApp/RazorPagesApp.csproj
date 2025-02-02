@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="CoreNotify.MailerSend" Version="1.0.3" />
     <PackageReference Include="Hashids.net" Version="1.7.0" />
+    <PackageReference Include="Hydro" Version="1.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />

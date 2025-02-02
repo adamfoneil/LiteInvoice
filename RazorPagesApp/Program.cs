@@ -6,6 +6,7 @@ using RazorPagesApp;
 using Scalar.AspNetCore;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Hydro.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,8 @@ builder.Services.Configure<JsonSerializerOptions>(options =>
 	options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 	options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
+
+builder.Services.AddHydro();
 
 var hashidsSalt = builder.Configuration["Hashids:Salt"] ?? throw new InvalidOperationException("Hashids:Salt not found.");
 var hashidsMinLength = int.Parse(builder.Configuration["Hashids:MinLength"] ?? "8");
@@ -63,6 +66,8 @@ app.UseApiKeyMiddleware();
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
+
+app.UseHydro(builder.Environment);
 
 app.MapCrudApi("/api/businesses",
 	(db, id) => db.Businesses.Where(row => row.Id == id),
