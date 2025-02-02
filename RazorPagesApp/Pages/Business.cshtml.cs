@@ -9,13 +9,14 @@ namespace RazorPagesApp.Pages;
 public class BusinessModel(
 	IDbContextFactory<ApplicationDbContext> dbFactory) : PageModel
 {
-	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;	
+	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;
+
+	public IEnumerable<Business> Businesses { get; private set; } = [];
 
 	public async Task OnGetAsync()
 	{
 		var userId = User.UserId();
-
 		using var db = _dbFactory.CreateDbContext();
-
+		Businesses = await db.Businesses.Where(row => row.UserId == userId).ToArrayAsync();
 	}
 }
