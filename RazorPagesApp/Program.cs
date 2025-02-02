@@ -7,6 +7,7 @@ using Scalar.AspNetCore;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Hydro.Configuration;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,12 @@ builder.Services
 
 builder.Services.Configure<MailerSendOptions>(builder.Configuration.GetSection("MailerSend"));
 builder.Services.AddSingleton<MailerSendClient>();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, GenericEmailSender<ApplicationUser>>(
+	sp => new GenericEmailSender<ApplicationUser>(
+		"liteinvoice", 
+		sp.GetRequiredService<MailerSendClient>(),
+		sp.GetRequiredService<ILogger<GenericEmailSender<ApplicationUser>>>()
+		));
 
 builder.Services.AddRazorPages();
 
