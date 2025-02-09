@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteInvoice.Database", "Lit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiteInvoice.Client", "LiteInvoice.Client\LiteInvoice.Client.csproj", "{0EC30865-DCCB-479C-B9FD-176F7F2FD98D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp", "BlazorApp\BlazorApp.csproj", "{94020854-9335-4A09-911E-0172BBACF3BD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{0EC30865-DCCB-479C-B9FD-176F7F2FD98D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EC30865-DCCB-479C-B9FD-176F7F2FD98D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0EC30865-DCCB-479C-B9FD-176F7F2FD98D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94020854-9335-4A09-911E-0172BBACF3BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94020854-9335-4A09-911E-0172BBACF3BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94020854-9335-4A09-911E-0172BBACF3BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94020854-9335-4A09-911E-0172BBACF3BD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

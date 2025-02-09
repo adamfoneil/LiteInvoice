@@ -4,21 +4,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-RazorPagesApp-dee88655-9831-49a0-8213-9e6a2a9b35ee</UserSecretsId>
+    <UserSecretsId>aspnet-BlazorApp-57b9c4dd-b2ea-462d-9b72-3d645ecfa366</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreNotify.MailerSend" Version="1.0.4" />
-    <PackageReference Include="Hashids.net" Version="1.7.0" />
-    <PackageReference Include="Hydro" Version="1.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.0.4" />
+	<PackageReference Include="CoreNotify.MailerSend" Version="1.0.4" />
+	<PackageReference Include="Hashids.net" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>
