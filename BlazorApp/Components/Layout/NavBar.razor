@@ -4,14 +4,20 @@
 
 <div class="d-flex align-items-center justify-content-between mt-3">
 	<div class="d-flex align-items-center">
-        <div>menu items</div>
+        <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+            <i class="bi bi-house"></i> Home
+        </NavLink>
+        <AuthorizeView>
+			<Authorized>
+                <IconNavLink IconClass="bi-clipboard-data" Text="Dashboard" Href="/Dashboard" />
+                <IconNavLink IconClass="bi-sliders" Text="Setup" Href="/Setup" />                
+			</Authorized>
+        </AuthorizeView>
 	</div>
 	<div class="d-flex align-items-center">
         <AuthorizeView>
             <Authorized>
-                <NavLink class="nav-link" href="Account/Manage">
-                    <i class="bi bi-person-circle"></i> @context.User.Identity?.Name					
-                </NavLink>
+                <IconNavLink Href="/Account/Manage" Text="@context.User.Identity?.Name" IconClass="bi-person-circle" />                
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
@@ -23,16 +29,8 @@
                 </div>
             </Authorized>
             <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">                        
-                        <i class="bi bi-person-fill-add"></i> Register						
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <i class="bi bi-box-arrow-in-right"></i> Login
-                    </NavLink>
-                </div>
+                <IconNavLink Href="/Account/Register" Text="Register" IconClass="bi-person-fill-add" />
+                <IconNavLink Href="/Account/Login" Text="Login" IconClass="bi-box-arrow-in-right" />
             </NotAuthorized>
         </AuthorizeView>
 	</div>

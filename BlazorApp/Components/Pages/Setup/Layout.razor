@@ -1,0 +1,19 @@
+﻿@inherits LayoutComponentBase
+@layout BlazorApp.Components.Layout.MainLayout
+
+<div class="d-flex align-items-start">
+	<div class="border-end">
+		<nav class="d-flex flex-column">
+			<IconNavLink Href="/Setup" IconClass="bi-list-check" Text="Checklist" />
+			<IconNavLink Href="/Setup/Business" IconClass="bi-info-circle" Text="Business" />
+			<IconNavLink Href="/Setup/PaymentMethods" IconClass="bi-wallet2" Text="Payment Methods" />
+		</nav>
+	</div>
+	<div class="ps-4">
+		@Body
+	</div>
+</div>
+
+@code {
+
+}

@@ -1,0 +1,9 @@
+﻿<NavLink class="nav-link" href="@Href">
+	<i class="bi @IconClass"></i> @Text
+</NavLink>
+
+@code {
+	[Parameter] public string Href { get; set; } = default!;
+	[Parameter] public string Text { get; set; } = default!;
+	[Parameter] public string IconClass { get; set; } = default!;
+}

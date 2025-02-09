@@ -1,3 +1,4 @@
+using AuthExtensions;
 using BlazorApp.Components;
 using BlazorApp.Components.Account;
 using LiteInvoice.Database;
@@ -29,7 +30,7 @@ builder.Services.AddAuthentication(options =>
 	.AddIdentityCookies();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Singleton);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
@@ -38,6 +39,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 	.AddDefaultTokenProviders();
 
 builder.Services.AddCoreNotifyGenericEmailSender<ApplicationUser>("liteinvoice", builder.Configuration);
+
+builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();
 
 var app = builder.Build();
 

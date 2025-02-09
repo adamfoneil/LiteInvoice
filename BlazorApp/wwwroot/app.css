@@ -59,6 +59,10 @@ h1:focus {
     text-align: start;
 }
 
+.nav-link {
+    margin-right:14px
+}
+
 .nav-link.active {
     background-color:#bc47e4;
     color:#fff;
