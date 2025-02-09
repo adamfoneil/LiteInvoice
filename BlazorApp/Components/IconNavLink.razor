@@ -1,4 +1,4 @@
-﻿<NavLink class="nav-link" href="@Href">
+﻿<NavLink class="nav-link" href="@Href" Match="Match">
 	<i class="bi @IconClass"></i> @Text
 </NavLink>
 
@@ -6,4 +6,5 @@
 	[Parameter] public string Href { get; set; } = default!;
 	[Parameter] public string Text { get; set; } = default!;
 	[Parameter] public string IconClass { get; set; } = default!;
+	[Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
 }
