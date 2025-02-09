@@ -1,7 +1,34 @@
-﻿@page "/Setup/PaymentMethods"
+﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@page "/Setup/PaymentMethods"
 
 <h3>Payment Methods</h3>
 
-@code {
+<EditForm Model="newPaymentMethod">
+	<FluentSelect @bind-SelectedOption="newPaymentMethod.Type" Label="Type" Items="Enum.GetValues<PaymentMethodType>()" />
+		
+	<FluentTextField @bind-Value="newPaymentMethod.Name" Label="Name" />
+</EditForm>
 
+@if (paymentMethods is null) return;
+
+
+@code {
+	private IQueryable<PaymentMethod>? paymentMethods;
+	private PaymentMethod newPaymentMethod = new();
+
+	[Parameter]
+	public ApplicationUser? CurrentUser { get; set; }
+
+	protected override void OnInitialized()
+	{
+		using var db = DbFactory.CreateDbContext();
+		var userId = CurrentUser?.UserId ?? 0;
+
+		paymentMethods = db
+			.PaymentMethods
+			.Include(pm => pm.Business)
+			.Where(pm => pm.Business.UserId == userId)
+			.AsQueryable();
+
+	}
 }
