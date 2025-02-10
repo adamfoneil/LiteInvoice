@@ -24,7 +24,7 @@
 	private ApplicationDbContext? db;
 	private int userId;
 
-	[Parameter]
+	[CascadingParameter]
 	public ApplicationUser? CurrentUser { get; set; }
 
 	protected override void OnInitialized()
