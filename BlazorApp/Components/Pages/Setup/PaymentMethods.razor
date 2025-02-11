@@ -5,9 +5,21 @@
 <h3>Payment Methods</h3>
 
 <EditForm Model="newPaymentMethod">
+	<FluentSelect  @bind-SelectedValue="newPaymentMethod.BusinessId" 
+		Label="Business" 
+		Items="_businesses" 
+		OptionText="b => b.Name" />
+
 	<FluentSelect @bind-SelectedOption="newPaymentMethod.Type" Label="Type" Items="Enum.GetValues<PaymentMethodType>()" />
 
 	<FluentTextField @bind-Value="newPaymentMethod.Name" Label="Name" />
+
+	@if (newPaymentMethod.Type == PaymentMethodType.StaticLink)
+	{
+		<FluentTextField @bind-Value="newPaymentMethod.StaticLink" Label="Static Link" />
+	}
+
+	<FluentButton OnClick="AddPaymentMethod">Add</FluentButton>
 </EditForm>
 
 @if (paymentMethods is null) return;
@@ -19,28 +31,39 @@
 </FluentDataGrid>
 
 @code {
+	private LiteInvoice.Database.Business[] _businesses = [];
 	private IQueryable<PaymentMethod>? paymentMethods;
 	private PaymentMethod newPaymentMethod = new();
-	private ApplicationDbContext? db;
+	private ApplicationDbContext? _db;
 	private int userId;
 
 	[CascadingParameter]
 	public ApplicationUser? CurrentUser { get; set; }
 
-	protected override void OnInitialized()
+	protected override async Task OnInitializedAsync()
 	{
-		db = DbFactory.CreateDbContext();
+		_db = DbFactory.CreateDbContext();
 		userId = CurrentUser?.UserId ?? 0;
 
-		paymentMethods = db
+		paymentMethods = _db
 			.PaymentMethods
 			.Include(pm => pm.Business)
 			.Where(pm => pm.Business.UserId == userId)
 			.AsQueryable();
+
+		_businesses = await _db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
 	}
 
 	public void Dispose()
 	{
-		db?.Dispose();
+		_db?.Dispose();
+	}
+
+	private async Task AddPaymentMethod()
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.PaymentMethods.Add(newPaymentMethod);
+		await db.SaveChangesAsync();
+		newPaymentMethod = new();
 	}
 }
