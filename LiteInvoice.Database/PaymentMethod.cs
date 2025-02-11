@@ -7,15 +7,15 @@ public enum PaymentMethodType
 	/// <summary>
 	/// customer will send me a check to mailing address
 	/// </summary>
-	ProfileAddress,
+	MailingAddress,
 	/// <summary>
 	/// customer will use my profile email to pay via services like Zelle
 	/// </summary>
-	ProfileEmail,
+	BusinessEmail,
 	/// <summary>
 	/// customer will use my profile phone # to pay via services like Zelle
 	/// </summary>
-	ProfilePhone,
+	BusinessPhone,
 	/// <summary>
 	/// PayPal.me, Venmo -- anything with a clickable link
 	/// </summary>
