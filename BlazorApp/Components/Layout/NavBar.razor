@@ -9,28 +9,28 @@
         </NavLink>
         <AuthorizeView>
 			<Authorized>
-                <IconNavLink IconClass="bi-clipboard-data" Text="Dashboard" Href="/Dashboard" />
-                <IconNavLink IconClass="bi-sliders" Text="Setup" Href="/Setup" />                
-			</Authorized>
+                <IconNavLink IconClass="dashboard" Text="Dashboard" Href="/Dashboard" />
+                <IconNavLink IconClass="settings" Text="Setup" Href="/Setup" />
+            </Authorized>
         </AuthorizeView>
 	</div>
 	<div class="d-flex align-items-center">
         <AuthorizeView>
             <Authorized>
-                <IconNavLink Href="/Account/Manage" Text="@context.User.Identity?.Name" IconClass="bi-person-circle" />                
+                <IconNavLink Href="/Account/Manage" Text="@context.User.Identity?.Name" IconClass="manage_accounts" />
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                         <button type="submit" class="nav-link" title="Logout">
-                            <i class="bi bi-box-arrow-right"></i>
+                            <RadzenIcon Icon="logout" />
                         </button>
                     </form>
                 </div>
             </Authorized>
             <NotAuthorized>
-                <IconNavLink Href="/Account/Register" Text="Register" IconClass="bi-person-fill-add" />
-                <IconNavLink Href="/Account/Login" Text="Login" IconClass="bi-box-arrow-in-right" />
+                <IconNavLink Href="/Account/Register" Text="Register" IconClass="how_to_reg" />
+                <IconNavLink Href="/Account/Login" Text="Login" IconClass="login" />
             </NotAuthorized>
         </AuthorizeView>
 	</div>

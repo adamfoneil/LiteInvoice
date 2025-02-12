@@ -14,8 +14,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.1" />
 	<PackageReference Include="CoreNotify.MailerSend" Version="1.0.4" />
 	<PackageReference Include="Hashids.net" Version="1.7.0" />
-	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.11.3" />
-	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.DataGrid.EntityFrameworkAdapter" Version="4.11.3" />	
+	<PackageReference Include="Radzen.Blazor" Version="5.9.9" />	
   </ItemGroup>
 
   <ItemGroup>

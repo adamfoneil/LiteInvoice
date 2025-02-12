@@ -1,62 +1,63 @@
 ﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
 @page "/Setup/PaymentMethods"
-@implements IDisposable
 
 <h3>Payment Methods</h3>
 
 <EditForm Model="newPaymentMethod">
-	<FluentSelect  @bind-SelectedValue="newPaymentMethod.BusinessId" 
-		Label="Business" 
-		Items="_businesses" 
-		OptionText="b => b.Name" />
+	<RadzenDropDown @bind-Value="newPaymentMethod.BusinessId"
+	Data="businesses"
+	TextProperty="Name" ValueProperty="Id" 
+	Placeholder="business"/>
 
-	<FluentSelect @bind-SelectedOption="newPaymentMethod.Type" Label="Type" Items="Enum.GetValues<PaymentMethodType>()" />
+	<RadzenDropDown @bind-Value="newPaymentMethod.Type"
+	Data="Enum.GetValues<PaymentMethodType>()"
+	Placeholder="Type" />
 
-	<FluentTextField @bind-Value="newPaymentMethod.Name" Label="Name" />
+	<RadzenTextBox @bind-Value="newPaymentMethod.Name" Placeholder="Name" MaxLength="50" />
 
-	@if (newPaymentMethod.Type == PaymentMethodType.StaticLink)
-	{
-		<FluentTextField @bind-Value="newPaymentMethod.StaticLink" Label="Static Link" />
-	}
+	<RadzenTextBox @bind-Value="newPaymentMethod.StaticLink" Placeholder="Static link" MaxLength="100" Visible="newPaymentMethod.Type == PaymentMethodType.StaticLink" />
 
-	<FluentButton OnClick="AddPaymentMethod">Add</FluentButton>
+	<RadzenButton Text="Add" Click="AddPaymentMethod" />
+
 </EditForm>
 
 @if (paymentMethods is null) return;
 
-<FluentDataGrid Items="paymentMethods">
-	<PropertyColumn Property="p => p.Name" />
-	<PropertyColumn Property="p => p.Type" />
-	<PropertyColumn Property="p => p.StaticLink" />
-</FluentDataGrid>
+<RadzenDataGrid TItem="PaymentMethod" Data="paymentMethods">
+	<Columns>
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="Name" Title="Name" />
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="Type" Title="Type" />
+	</Columns>
+</RadzenDataGrid>
 
 @code {
-	private LiteInvoice.Database.Business[] _businesses = [];
-	private IQueryable<PaymentMethod>? paymentMethods;
-	private PaymentMethod newPaymentMethod = new();
-	private ApplicationDbContext? _db;
+	private LiteInvoice.Database.Business[] businesses = [];
+	private PaymentMethod[] paymentMethods = [];
+	private PaymentMethod newPaymentMethod = new();	
 	private int userId;
 
 	[CascadingParameter]
 	public ApplicationUser? CurrentUser { get; set; }
 
-	protected override async Task OnInitializedAsync()
+	private async Task Refresh()
 	{
-		_db = DbFactory.CreateDbContext();
-		userId = CurrentUser?.UserId ?? 0;
+		using var db = DbFactory.CreateDbContext();
 
-		paymentMethods = _db
+		paymentMethods = await db
 			.PaymentMethods
 			.Include(pm => pm.Business)
 			.Where(pm => pm.Business.UserId == userId)
-			.AsQueryable();
-
-		_businesses = await _db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
+			.ToArrayAsync();
 	}
 
-	public void Dispose()
+	protected override async Task OnInitializedAsync()
 	{
-		_db?.Dispose();
+		userId = CurrentUser?.UserId ?? 0;
+
+		using var db = DbFactory.CreateDbContext();
+		businesses = await db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
+
+		await Refresh();
 	}
 
 	private async Task AddPaymentMethod()
@@ -65,5 +66,6 @@
 		db.PaymentMethods.Add(newPaymentMethod);
 		await db.SaveChangesAsync();
 		newPaymentMethod = new();
+		await Refresh();
 	}
 }
