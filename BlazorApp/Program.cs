@@ -1,8 +1,8 @@
 using AuthExtensions;
 using BlazorApp.Components;
 using BlazorApp.Components.Account;
+using CoreNotify.MailerSend.Extensions;
 using LiteInvoice.Database;
-using MailerSend.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
