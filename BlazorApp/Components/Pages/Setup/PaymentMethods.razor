@@ -5,20 +5,19 @@
 
 <EditForm Model="newPaymentMethod">
 	<RadzenDropDown @bind-Value="newPaymentMethod.BusinessId"
-	Data="businesses"
-	TextProperty="Name" ValueProperty="Id" 
-	Placeholder="business"/>
+		Data="businesses"
+		TextProperty="Name" ValueProperty="Id" 
+		Placeholder="business"/>
 
 	<RadzenDropDown @bind-Value="newPaymentMethod.Type"
-	Data="Enum.GetValues<PaymentMethodType>()"
-	Placeholder="Type" />
+		Data="Enum.GetValues<PaymentMethodType>()"
+		Placeholder="Type" />
 
 	<RadzenTextBox @bind-Value="newPaymentMethod.Name" Placeholder="Name" MaxLength="50" />
 
 	<RadzenTextBox @bind-Value="newPaymentMethod.StaticLink" Placeholder="Static link" MaxLength="100" Visible="newPaymentMethod.Type == PaymentMethodType.StaticLink" />
 
 	<RadzenButton Text="Add" Click="AddPaymentMethod" />
-
 </EditForm>
 
 @if (paymentMethods is null) return;

@@ -1,0 +1,83 @@
+﻿@page "/Setup/Business"
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<h3>Business</h3>
+
+<RadzenDropDown @bind-Value="selectedBusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="SelectBusiness" />
+
+<EditForm Model="business" class="edit-form" OnValidSubmit="Save">
+	<label>Business Name:</label>
+	<RadzenTextBox @bind-Value="business.Name" Placeholder="Business Name" MaxLength="50" />
+
+	<label>Address:</label>
+	<RadzenTextBox @bind-Value="business.Address" Placeholder="Address" MaxLength="100" />
+
+	<label>City:</label>
+	<RadzenTextBox @bind-Value="business.City" Placeholder="City" MaxLength="50" />
+
+	<label>State:</label>
+	<RadzenTextBox @bind-Value="business.State" Placeholder="State" MaxLength="50" />
+
+	<label>Zip Code:</label>
+	<RadzenTextBox @bind-Value="business.Zip" Placeholder="Zip Code" MaxLength="20" />
+
+	<label>Hourly Rate:</label>
+	<RadzenNumeric @bind-Value="business.HourlyRate" Placeholder="Hourly Rate" />
+
+	<RadzenButton Text="Save" Icon="save" ButtonType="ButtonType.Submit" />
+	<RadzenButton Text="New" Icon="add_circle" Click="() => { business = new(); selectedBusinessId = 0; }" />
+</EditForm>
+
+
+@code {
+	private int selectedBusinessId;
+	private Business[] businesses = [];
+	private Dictionary<int, Business> businessesById = [];
+	private Business business = new();
+
+	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		using var db = DbFactory.CreateDbContext();
+
+		await RefreshBusinesses(db);		
+
+		if (businesses.Any()) business = businesses.First();
+	}
+
+	private async Task Save()
+	{
+		business.UserId = CurrentUser?.UserId ?? 0;
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+		db.Businesses.Update(business);
+		await db.SaveChangesAsync();
+
+		await RefreshBusinesses(db);
+	}
+
+	private void SelectBusiness()
+	{
+		if (businessesById.TryGetValue(selectedBusinessId, out var selectedBusiness))
+		{
+			business = selectedBusiness;
+		}
+		else
+		{
+			business = new Business();
+		}
+	}
+
+	private async Task RefreshBusinesses(ApplicationDbContext db)
+	{
+		var userId = CurrentUser?.UserId ?? 0;
+
+		businesses = await db
+			.Businesses
+			.Where(b => b.UserId == userId)
+			.ToArrayAsync();
+
+		businessesById = businesses.ToDictionary(b => b.Id);
+	}
+}

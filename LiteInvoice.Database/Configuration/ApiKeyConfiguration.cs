@@ -8,6 +8,6 @@ public class ApiKeyConfiguration : IEntityTypeConfiguration<ApiKey>
 	{		
 		builder.HasIndex(e => e.Key).IsUnique();
 		builder.Property(e => e.Key).HasMaxLength(32).IsRequired();
-		builder.HasOne(e => e.Business).WithMany(u => u.ApiKeys).HasForeignKey(e => e.BusinessId).HasPrincipalKey(e => e.UserId).OnDelete(DeleteBehavior.Cascade);
+		builder.HasOne(e => e.Business).WithMany(u => u.ApiKeys).HasForeignKey(e => e.BusinessId).OnDelete(DeleteBehavior.Cascade);
 	}
 }

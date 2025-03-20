@@ -69,3 +69,8 @@ h1:focus {
     border-radius:3px;
     padding:3px
 }
+
+.edit-form {
+	display: grid;
+	grid-template-columns: auto auto;
+}
