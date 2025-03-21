@@ -1,0 +1,30 @@
+﻿@typeparam TItem
+
+<RadzenDataGridColumn TItem="TItem">
+	<Template>
+		<RadzenButton ButtonStyle="ButtonStyle.Light" Icon="edit" Click="@(args => Grid.EditRow(context))" class="mr-2"/>
+		<RadzenButton Icon="delete" Click="@(args => OnDeleteRow(context))" />
+	</Template>
+	<EditTemplate>
+
+	</EditTemplate>
+</RadzenDataGridColumn>
+
+@code {
+	[Parameter, EditorRequired]
+    public RadzenDataGrid<TItem> Grid { get; set; } = default!;
+
+	[Parameter]
+	public EventCallback<TItem> DeleteRow { get; set; }
+
+	async Task OnDeleteRow(TItem row)
+	{
+		if (ShowConfirmDialog)
+		{
+			var result = await Dialogs.Confirm("This will delete the row permanently.", "Delete Row");
+			if (result.HasValue && !result.Value) return;
+		}
+
+		await DeleteRow.InvokeAsync(row);
+	}
+}
