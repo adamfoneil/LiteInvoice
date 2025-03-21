@@ -4,7 +4,8 @@
 <h3>Customers</h3>
 <RadzenDropDown @bind-Value="selectedBusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="SelectBusiness" Placeholder="business" />
 
-<RadzenDataGrid Data="customers">
+<GridInsertButton TItem="Customer" Grid="grid" OnCreateItem="() => new() { BusinessId = selectedBusinessId }" />
+<RadzenDataGrid Data="customers" @ref="grid">
 	<Columns>
 		<RadzenDataGridColumn TItem="Customer" Title="Name" Property="Name">
 			<EditTemplate>
@@ -26,6 +27,12 @@
 				<RadzenTextBox @bind-Value="context.Phone" Placeholder="Phone" MaxLength="50" />
 			</EditTemplate>
 		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="Customer" Title="Rate" Property="HourlyRate">
+			<EditTemplate>
+				<RadzenNumeric @bind-Value="context.HourlyRate" Placeholder="Hourly Rate" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<GridControls Grid="grid" />
 	</Columns>
 </RadzenDataGrid>
 
@@ -34,6 +41,7 @@
 	private int selectedBusinessId;
 	private Business[] businesses = [];
 	private Customer[] customers = [];
+	private RadzenDataGrid<Customer>? grid;
 
 	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
 

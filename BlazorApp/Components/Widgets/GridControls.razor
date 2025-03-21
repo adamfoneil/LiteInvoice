@@ -5,8 +5,9 @@
 		<RadzenButton ButtonStyle="ButtonStyle.Light" Icon="edit" Click="@(args => Grid.EditRow(context))" class="mr-2"/>
 		<RadzenButton Icon="delete" Click="@(args => OnDeleteRow(context))" />
 	</Template>
-	<EditTemplate>
-
+	<EditTemplate>		
+		<RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="save" Click="@((args) => Grid!.UpdateRow(context))" class="mr-2" />
+		<RadzenButton ButtonStyle="ButtonStyle.Primary" Icon="cancel" Click="@((args) => Grid!.CancelEditRow(context))" />	
 	</EditTemplate>
 </RadzenDataGridColumn>
 
@@ -18,13 +19,10 @@
 	public EventCallback<TItem> DeleteRow { get; set; }
 
 	async Task OnDeleteRow(TItem row)
-	{
-		if (ShowConfirmDialog)
-		{
-			var result = await Dialogs.Confirm("This will delete the row permanently.", "Delete Row");
-			if (result.HasValue && !result.Value) return;
-		}
-
+	{		
+		var result = await Dialogs.Confirm("This will delete the row permanently.", "Delete Row");
+		if (result.HasValue && !result.Value) return;
+		
 		await DeleteRow.InvokeAsync(row);
 	}
 }
