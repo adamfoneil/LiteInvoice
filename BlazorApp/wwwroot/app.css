@@ -73,4 +73,11 @@ h1:focus {
 .edit-form {
 	display: grid;
 	grid-template-columns: auto auto;
+	gap: 0.5rem;
+}
+
+.four-column {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0.5rem;
 }

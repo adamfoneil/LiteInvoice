@@ -1,0 +1,36 @@
+﻿@page "/NextInvoice"
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ViewState View
+
+<h3>Next Invoice</h3>
+<div class="d-flex align-items-center">
+	<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
+	<RadzenDropDown @bind-Value="customerId" Data="customers[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
+	<RadzenDropDown @bind-Value="projectId" Data="projects[customerId]" ValueProperty="Id" TextProperty="Name" />
+</div>
+
+<h4 class="mt-3">Hours</h4>
+<Hours ProjectId="projectId" />
+
+<h4 class="mt-3">Expenses</h4>
+
+@code {
+	private int userId;
+	private int customerId;
+	private int projectId;
+	private Business[] businesses = [];
+	private ILookup<int, Customer> customers = Enumerable.Empty<Customer>().ToLookup(row => row.BusinessId);
+	private ILookup<int, Project> projects = Enumerable.Empty<Project>().ToLookup(row => row.CustomerId);
+
+	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		userId = CurrentUser?.UserId ?? 0;
+
+		using var db = DbFactory.CreateDbContext();
+		businesses = await db.Businesses.Where(row => row.UserId == userId).ToArrayAsync();
+		customers = (await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync()).ToLookup(row => row.BusinessId);
+		projects = (await db.Projects.Include(p => p.Customer).ThenInclude(c => c.Business).Where(p => p.Customer.Business.UserId == userId).ToArrayAsync()).ToLookup(row => row.CustomerId);
+	}
+}

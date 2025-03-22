@@ -1,0 +1,107 @@
+﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<GridInsertButton Grid="grid" TItem="HoursEntry" OnCreateItem="() => new HoursEntry() { ProjectId = this.ProjectId, Rate = project?.HourlyRate ?? 0 }" Disabled="ProjectId == 0" />
+
+<RadzenDataGrid @ref="grid" TItem="HoursEntry" Data="hours" RowCreate="Save" RowUpdate="Save">
+	<Columns>
+		<RadzenDataGridColumn TItem="HoursEntry" Title="Date" Property="Date">
+			<EditTemplate>
+				<RadzenDatePicker @bind-Value="@context.Date" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="HoursEntry" Title="Description" Property="Description">
+			<EditTemplate>
+				<RadzenTextArea @bind-Value="context.Description" MaxLength="255" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="HoursEntry" Title="Hours" Property="Hours" FormatString="{0:n2}">
+			<EditTemplate>
+				<RadzenNumeric @bind-Value="context.Hours" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="HoursEntry" Title="Include" Property="AddToInvoice">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.AddToInvoice" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<GridControls Grid="grid" TItem="HoursEntry" DeleteRow="Delete" />
+	</Columns>
+	<FooterTemplate>
+		<div class="four-column">
+			<label>Total Hours</label>
+			<span>@totalHours.ToString("n2")</span>
+
+			<label>Total Dollars:</label>
+			<span>@totalDollars.ToString("c2")</span>
+
+			<label>Invoiced Hours:</label>
+			<span>@invoiceableHours.ToString("n2")</span>
+
+			<label>Invoiced Dollars:</label>
+			<span>@invoiceableDollars.ToString("c2")</span>
+		</div>
+	</FooterTemplate>
+	<Template>
+		<div class="edit-form">
+			<label>Rate:</label>
+			<RadzenNumeric @bind-Value="context.Rate" />
+		</div>
+	</Template>
+</RadzenDataGrid>
+
+@code {
+	private Project? project;
+	private RadzenDataGrid<HoursEntry>? grid;
+	private HoursEntry[] hours = [];
+	private decimal totalHours, invoiceableHours;
+	private decimal totalDollars, invoiceableDollars;
+
+	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	[Parameter]
+	public int ProjectId { get; set; }
+
+	protected override async Task OnParametersSetAsync()
+	{
+		using var db = DbFactory.CreateDbContext();
+		project = await db.Projects.FindAsync(ProjectId);
+		await Refresh();
+	}
+
+	private async Task Refresh()
+	{
+		using var db = DbFactory.CreateDbContext();
+
+		hours = await db.Hours
+			.Include(h => h.Project)
+			.Where(h => h.ProjectId == ProjectId)
+			.ToArrayAsync();
+
+		totalHours = hours.Sum(h => h.Hours);
+		totalDollars = hours.Sum(h => h.Hours * h.Rate);
+		invoiceableHours = hours.Where(row => row.AddToInvoice).Sum(row => row.Hours);
+		invoiceableDollars = hours.Where(row => row.AddToInvoice).Sum(row => row.Hours * row.Rate);
+	}
+
+	private async Task Save(HoursEntry row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+		db.Hours.Update(row);
+		await db.SaveChangesAsync();
+		await Refresh();
+	}
+
+	private async Task Delete(HoursEntry row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+		db.Hours.Remove(row);
+		await db.SaveChangesAsync();
+		await Refresh();
+	}
+}
