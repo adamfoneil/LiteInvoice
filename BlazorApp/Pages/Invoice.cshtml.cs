@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlazorApp;
+namespace BlazorApp.Pages;
 
 public class InvoiceModel(
 	Hashids hashids,
@@ -19,10 +19,10 @@ public class InvoiceModel(
 	public Invoice Invoice { get; private set; } = new();
 
 	public async Task OnGetAsync()
-    {
-		var invoiceId = _hashids.DecodeSingle(InvoiceId);
+    {		
 		using var db = _dbFactory.CreateDbContext();
-		Invoice = await db.Invoices.FindAsync(invoiceId);
+		Invoice = await db.Invoices.SingleOrDefaultAsync(row => row.HashId == InvoiceId) ?? throw new Exception("invoice not found");
 
-    }
+
+	}
 }
