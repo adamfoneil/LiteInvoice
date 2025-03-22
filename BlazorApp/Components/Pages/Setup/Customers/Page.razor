@@ -40,7 +40,6 @@
 	</Columns>
 </RadzenDataGrid>
 
-
 @code {
 	private Business[] businesses = [];
 	private Customer[] customers = [];
@@ -77,6 +76,7 @@
 	private async Task SaveCustomer(Customer row)
 	{
 		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
 		db.Customers.Update(row);
 		await db.SaveChangesAsync();
 	}

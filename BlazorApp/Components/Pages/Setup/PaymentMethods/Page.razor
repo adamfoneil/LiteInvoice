@@ -70,6 +70,7 @@
 	private async Task Save(PaymentMethod row)
 	{
 		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
 		db.PaymentMethods.Update(row);
 		await db.SaveChangesAsync();
 	}

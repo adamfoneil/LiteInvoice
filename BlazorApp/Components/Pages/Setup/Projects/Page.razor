@@ -1,0 +1,86 @@
+﻿@page "/Setup/Projects"
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ViewState View
+
+<h3>Projects</h3>
+
+<div class="d-flex align-items-center">
+	<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Placeholder="business" />
+	<RadzenDropDown @bind-Value="customerId" Data="customersByBusiness[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Change="Refresh" />
+</div>
+
+<GridInsertButton Grid="grid" TItem="Project" OnCreateItem="() => new() { CustomerId = customerId }" />
+<RadzenDataGrid TItem="Project" Data="projects" @ref="grid" RowUpdate="Save" RowCreate="Save">
+	<Columns>
+		<RadzenDataGridColumn TItem="Project" Property="Name" Title="Name">
+			<EditTemplate>
+				<RadzenTextBox @bind-Value="context.Name" Placeholder="Project Name" MaxLength="50" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="Project" Property="Description" Title="Description">
+			<EditTemplate>
+				<RadzenTextArea @bind-Value="context.Description" Placeholder="Description" MaxLength="255" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="Project" Property="HourlyRate" Title="Hourly Rate" FormatString="{0:c2}">
+			<EditTemplate>
+				<RadzenNumeric @bind-Value="context.HourlyRate" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<GridControls TItem="Project" Grid="grid" DeleteRow="Delete" />
+	</Columns>
+	<Template>
+		<div class="edit-form">
+			<label>Monthly Retainer:</label>
+			<RadzenNumeric @bind-Value="context.MonthlyRetainer" Format="c2" />
+
+			<label>Description:</label>
+			<RadzenTextBox @bind-Value="context.MonthlyRetainerDescription" MaxLength="255" />
+		</div>
+	</Template>
+</RadzenDataGrid>
+
+@code {
+	private Business[] businesses = [];
+	private int customerId;
+	private ILookup<int, Customer> customersByBusiness = Enumerable.Empty<Customer>().ToLookup(c => c.BusinessId);
+	private int userId;
+	private RadzenDataGrid<Project>? grid;
+	private Project[] projects = [];
+
+	[CascadingParameter]
+	public ApplicationUser? CurrentUser { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		userId = CurrentUser?.UserId ?? 0;
+
+		using var db = DbFactory.CreateDbContext();
+		businesses = await db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
+		var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync();
+		customersByBusiness = customers.ToLookup(row => row.BusinessId);
+
+		View.Initialize(businesses);
+	}
+
+	private async Task Refresh()
+	{
+		using var db = DbFactory.CreateDbContext();
+		projects = await db.Projects.Where(row => row.CustomerId == customerId).ToArrayAsync();
+	}
+
+	private async Task Save(Project row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+		db.Projects.Update(row);
+		await db.SaveChangesAsync();
+	}
+
+	private async Task Delete(Project row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.Projects.Remove(row);
+		await db.SaveChangesAsync();
+	}
+}
