@@ -1,5 +1,5 @@
-# Dev resources
-- Setup your local Postgres instance with [pg-setup-docker.txt](https://github.com/adamfoneil/LiteInvoice/blob/master/pg-setup-docker.txt)
-- The Blazor app project uses [FluentUI](https://www.fluentui-blazor.net/)
-- FluentUI [Icon explorer](https://www.fluentui-blazor.net/Icon#explorer)
-- I pivoted to [Bootstrap icons](https://icons.getbootstrap.com/) because I didn't like the MS feel and IMO limited selection of FluentUI icons
+# Setting up new dev environment
+1. Install Docker Desktop if needed
+2. Setup local Postgres instance with [pg-setup-docker.txt](https://github.com/adamfoneil/LiteInvoice/blob/master/pg-setup-docker.txt)
+3. Create local database by `cd LiteInvoice.Database` then `dotnet ef database update`
+4. Right click on the Blazor project and select Manage User Secrets. Get the secrets.json file from Adam.
