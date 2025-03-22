@@ -36,7 +36,7 @@
 				<div>
 					<RadzenTextArea @bind-Value="context.Instructions" MaxLength="255" Placeholder="instructions for customers" />
 				</div>
-				
+
 				<RadzenText Visible="context.Type != PaymentMethodType.StaticLink" Text="n/a" />
 
 				<div>
@@ -71,24 +71,28 @@
 	private bool manageCustomers;
 	private RadzenDataGrid<PaymentMethod>? grid;
 	private Business[] businesses = [];	
-	private PaymentMethod[] paymentMethods = [];
-	private int userId;
+	private PaymentMethod[] paymentMethods = [];	
 	private int customerId;
 	private ILookup<int, Customer> customersByBusiness = Enumerable.Empty<Customer>().ToLookup(c => c.BusinessId);
 
 	[CascadingParameter]
 	public ApplicationUser? CurrentUser { get; set; }
 
-	protected override async Task OnInitializedAsync()
+	protected override void OnParametersSet()
 	{
-		userId = CurrentUser?.UserId ?? 0;
+		View.CurrentUser ??= CurrentUser;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{	
+		View.CurrentUser ??= CurrentUser;
 
 		using var db = DbFactory.CreateDbContext();
-		businesses = await db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
+		businesses = await db.Businesses.Where(b => b.UserId == View.UserId).ToArrayAsync();
 
 		View.Initialize(businesses);
 
-		var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync();
+		var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == View.UserId).ToArrayAsync();
 		customersByBusiness = customers.ToLookup(row => row.BusinessId);
 
 		await Refresh();

@@ -9,6 +9,11 @@ public class ViewState
 	/// </summary>
 	public int BusinessId { get; set; }
 
+	public int UserId => CurrentUser?.UserId ?? 0;
+
+	public ApplicationUser? CurrentUser { get; set; }
+
+
 	public void Initialize(IEnumerable<Business> businesses)
 	{
 		if (businesses.Any() && BusinessId == 0)
