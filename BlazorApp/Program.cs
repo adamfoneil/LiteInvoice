@@ -1,4 +1,5 @@
 using AuthExtensions;
+using BlazorApp;
 using BlazorApp.Components;
 using BlazorApp.Components.Account;
 using CoreNotify.MailerSend.Extensions;
@@ -21,6 +22,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<ViewState>();
 
 builder.Services.AddAuthentication(options =>
 	{

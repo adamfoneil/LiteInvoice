@@ -1,9 +1,10 @@
 ﻿@page "/Setup/Business"
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ViewState View
 
 <h3>Business</h3>
 
-<RadzenDropDown @bind-Value="selectedBusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="SelectBusiness" />
+<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="SelectBusiness" />
 
 <EditForm Model="business" class="edit-form" OnValidSubmit="Save">
 	<label>Business Name:</label>
@@ -25,12 +26,11 @@
 	<RadzenNumeric @bind-Value="business.HourlyRate" Placeholder="Hourly Rate" />
 
 	<RadzenButton Text="Save" Icon="save" ButtonType="ButtonType.Submit" />
-	<RadzenButton Text="New" Icon="add_circle" Click="() => { business = new(); selectedBusinessId = 0; }" />
+	<RadzenButton Text="New" Icon="add_circle" Click="() => { business = new(); View.BusinessId = 0; }" />
 </EditForm>
 
 
 @code {
-	private int selectedBusinessId;
 	private Business[] businesses = [];
 	private Dictionary<int, Business> businessesById = [];
 	private Business business = new();
@@ -43,7 +43,12 @@
 
 		await RefreshBusinesses(db);		
 
-		if (businesses.Any()) business = businesses.First();
+		if (businesses.Any() && View.BusinessId == 0)
+		{
+			View.BusinessId = businesses.First().Id;			
+		}
+
+		SelectBusiness();
 	}
 
 	private async Task Save()
@@ -59,7 +64,7 @@
 
 	private void SelectBusiness()
 	{
-		if (businessesById.TryGetValue(selectedBusinessId, out var selectedBusiness))
+		if (businessesById.TryGetValue(View.BusinessId, out var selectedBusiness))
 		{
 			business = selectedBusiness;
 		}
