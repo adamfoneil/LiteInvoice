@@ -36,9 +36,9 @@ public class PaymentMethod : BaseEntity
 	public PaymentMethodType Type { get; set; }
 	public string Name { get; set; } = default!;
 	/// <summary>
-	/// PayPal.me or Venmo link
+	/// PayPal.me or Venmo link, mailing address, or phone number
 	/// </summary>
-	public string? StaticLink { get; set; }
+	public string? Data { get; set; }
 	/// <summary>
 	/// for example:
 	/// "make checks payable to {me}"

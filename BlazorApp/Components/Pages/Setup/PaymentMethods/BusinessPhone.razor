@@ -1,0 +1,12 @@
+﻿@if (Business is null) return;
+@if (!Visible) return;
+
+<div>@Business.Phone.ToPhoneNumber()</div>
+
+@code {
+	[Parameter]
+	public bool Visible { get; set; } = true;
+
+	[Parameter]
+	public Business? Business { get; set; }
+}

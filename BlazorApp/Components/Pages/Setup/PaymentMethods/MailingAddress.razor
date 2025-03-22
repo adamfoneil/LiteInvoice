@@ -1,0 +1,16 @@
+﻿@if (Business is null) return;
+@if (!Visible) return;
+
+<div>
+	<div><strong>@Business.Name</strong></div>
+	<div>@Business.Address</div>
+	<div>@Business.City, @Business.State @Business.Zip</div>
+</div>
+
+@code {
+	[Parameter]
+	public bool Visible { get; set; } = true;
+
+	[Parameter]
+	public Business? Business { get; set; }
+}

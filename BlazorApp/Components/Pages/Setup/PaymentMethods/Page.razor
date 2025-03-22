@@ -1,0 +1,83 @@
+﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@page "/Setup/PaymentMethods"
+@inject ViewState View
+
+<h3>Payment Methods</h3>
+<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="Refresh" Placeholder="business" />
+
+<GridInsertButton Grid="grid" TItem="PaymentMethod" OnCreateItem="() => new PaymentMethod() { BusinessId = View.BusinessId }" />
+<RadzenDataGrid TItem="PaymentMethod" Data="paymentMethods" RowCreate="Save" RowUpdate="Save" @ref="grid">
+	<Columns>
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="Name" Title="Name">
+			<EditTemplate>
+				<RadzenTextBox @bind-Value="context.Name" MaxLength="50" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="Type" Title="Type">
+			<EditTemplate>
+				<RadzenDropDown @bind-Value="context.Type" Data="Enum.GetValues<PaymentMethodType>()" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="Data" Title="Data">
+			<Template>
+				<RadzenText Text="@context.Instructions" Visible="!string.IsNullOrEmpty(context.Instructions)" Style="white-space:normal" />
+				<RadzenText Text="@context.Data" Visible="context.Type == PaymentMethodType.StaticLink" Style="white-space:normal" />
+				<MailingAddress Visible="context.Type == PaymentMethodType.MailingAddress" Business="@context.Business" />
+				<BusinessPhone Visible="context.Type == PaymentMethodType.BusinessPhone" Business="@context.Business" />
+			</Template>
+			<EditTemplate>
+				<RadzenTextArea @bind-Value="context.Instructions" MaxLength="255" Placeholder="instructions for customers" />
+				<RadzenText Visible="context.Type != PaymentMethodType.StaticLink" Text="n/a" />
+				<RadzenTextArea @bind-Value="context.Data" MaxLength="255" Visible="context.Type == PaymentMethodType.StaticLink" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<GridControls TItem="PaymentMethod" DeleteRow="Delete" Grid="grid" />
+	</Columns>
+</RadzenDataGrid>
+
+@code {
+	private RadzenDataGrid<PaymentMethod>? grid;
+	private Business[] businesses = [];	
+	private PaymentMethod[] paymentMethods = [];
+	private int userId;
+
+	[CascadingParameter]
+	public ApplicationUser? CurrentUser { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		userId = CurrentUser?.UserId ?? 0;
+
+		using var db = DbFactory.CreateDbContext();
+		businesses = await db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
+
+		View.Initialize(businesses);
+
+		await Refresh();
+	}
+
+	private async Task Refresh()
+	{
+		using var db = DbFactory.CreateDbContext();
+
+		paymentMethods = await db
+			.PaymentMethods
+			.Include(pm => pm.Business)
+			.Where(pm => pm.BusinessId == View.BusinessId)
+			.ToArrayAsync();
+	}
+
+	private async Task Save(PaymentMethod row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.PaymentMethods.Update(row);
+		await db.SaveChangesAsync();
+	}
+
+	private async Task Delete(PaymentMethod row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.PaymentMethods.Remove(row);
+		await db.SaveChangesAsync();
+	}
+}

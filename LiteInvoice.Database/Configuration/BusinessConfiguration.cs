@@ -15,6 +15,7 @@ public class BusinessConfiguration : IEntityTypeConfiguration<Business>
 		builder.Property(e => e.City).HasMaxLength(50);
 		builder.Property(e => e.State).HasMaxLength(50);
 		builder.Property(e => e.Zip).HasMaxLength(20);
+		builder.Property(e => e.Phone).HasMaxLength(20);
 		builder.Property(e => e.HourlyRate).HasColumnType("money");
 	}
 }

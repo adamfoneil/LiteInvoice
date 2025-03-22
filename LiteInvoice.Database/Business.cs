@@ -12,6 +12,7 @@ public class Business : BaseEntity, IMailingAddress
 	public string? City { get; set; }
 	public string? State { get; set; }
 	public string? Zip { get; set; }
+	public string? Phone { get; set; }
 	public int NextInvoiceNumber { get; set; } = 1000;
 	public decimal? HourlyRate { get; set; }
 
