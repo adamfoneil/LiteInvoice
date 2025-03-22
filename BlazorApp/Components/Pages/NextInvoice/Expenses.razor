@@ -1,0 +1,93 @@
+﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<GridInsertButton Grid="grid" TItem="ExpenseEntry" OnCreateItem="() => new ExpenseEntry() { ProjectId = this.ProjectId }" Disabled="ProjectId == 0" />
+
+<RadzenDataGrid @ref="grid" TItem="ExpenseEntry" Data="expenses" RowCreate="Save" RowUpdate="Save">
+	<Columns>
+		<RadzenDataGridColumn TItem="ExpenseEntry" Title="Date" Property="Date">
+			<EditTemplate>
+				<RadzenDatePicker @bind-Value="@context.Date" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="ExpenseEntry" Title="Description" Property="Description">
+			<EditTemplate>
+				<RadzenTextArea @bind-Value="context.Description" MaxLength="255" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="ExpenseEntry" Title="Amount" Property="Amount" FormatString="{0:c2}">
+			<EditTemplate>
+				<RadzenNumeric @bind-Value="context.Amount" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="ExpenseEntry" Title="Include" Property="AddToInvoice">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.AddToInvoice" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<GridControls Grid="grid" TItem="ExpenseEntry" DeleteRow="Delete" />
+	</Columns>
+	<FooterTemplate>
+		<div class="edit-form">
+			<label>Total expenses:</label>
+			<span>@totalExpenses.ToString("c2")</span>
+		</div>
+	</FooterTemplate>
+</RadzenDataGrid>
+
+@code {
+	private RadzenDataGrid<ExpenseEntry>? grid;
+	private ExpenseEntry[] expenses = [];
+	private decimal totalExpenses;
+
+	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	[Parameter]
+	public int ProjectId { get; set; }
+
+	[Parameter]
+	public EventCallback Updated { get; set; }
+
+	public decimal TotalExpenses => totalExpenses;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		using var db = DbFactory.CreateDbContext();		
+		await Refresh();
+	}
+
+	private async Task Refresh()
+	{
+		using var db = DbFactory.CreateDbContext();
+
+		expenses = await db.Expenses
+			.Include(h => h.Project)
+			.Where(h => h.ProjectId == ProjectId)
+			.ToArrayAsync();
+
+		totalExpenses = expenses.Sum(row => row.Amount);
+	}
+
+	private async Task Save(ExpenseEntry row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+		db.Expenses.Update(row);
+		await db.SaveChangesAsync();
+		await Updated.InvokeAsync();
+		await Refresh();
+	}
+
+	private async Task Delete(ExpenseEntry row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+		db.Expenses.Remove(row);
+		await db.SaveChangesAsync();
+		await Updated.InvokeAsync();
+		await Refresh();
+	}
+}

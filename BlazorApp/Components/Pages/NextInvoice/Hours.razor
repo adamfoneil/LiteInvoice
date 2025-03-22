@@ -65,6 +65,12 @@
 	[Parameter]
 	public int ProjectId { get; set; }
 
+	[Parameter]
+	public EventCallback Updated { get; set; }
+
+	public decimal InvoiceableHours => invoiceableHours;
+	public decimal InvoiceableDollars => invoiceableDollars;
+
 	protected override async Task OnParametersSetAsync()
 	{
 		using var db = DbFactory.CreateDbContext();
@@ -93,6 +99,7 @@
 		db.CurrentUser = CurrentUser?.UserName;
 		db.Hours.Update(row);
 		await db.SaveChangesAsync();
+		await Updated.InvokeAsync();
 		await Refresh();
 	}
 
@@ -102,6 +109,7 @@
 		db.CurrentUser = CurrentUser?.UserName;
 		db.Hours.Remove(row);
 		await db.SaveChangesAsync();
+		await Updated.InvokeAsync();
 		await Refresh();
 	}
 }

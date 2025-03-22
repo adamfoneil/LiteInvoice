@@ -1,0 +1,55 @@
+﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<RadzenDataGrid TItem="Invoice" Data="invoices">
+	<Columns>
+		<RadzenDataGridColumn TItem="Invoice" Property="Number" Title="Invoice #" />
+		<RadzenDataGridColumn TItem="Invoice" Title="Customer">
+			<Template>
+				@context.Project.Customer.Name
+			</Template>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="Invoice" Title="Amount" Property="AmountDue" FormatString="{0:c2}" />
+		<RadzenDataGridColumn TItem="Invoice" Title="Date" Property="Date" FormatString="{0:M/d/yy}" />
+		<RadzenDataGridColumn TItem="Invoice">
+			<Template>
+				<RadzenButton Text="Delete" Click="() => Delete(context)" />
+			</Template>
+		</RadzenDataGridColumn>
+	</Columns>
+</RadzenDataGrid>
+
+@code {
+	private int userId;
+	private Invoice[] invoices = [];
+
+	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		userId = CurrentUser?.UserId ?? 0;
+		await Refresh();
+	}
+
+	private async Task Refresh()
+	{
+		using var db = DbFactory.CreateDbContext();
+		invoices = await db.Invoices
+			.Include(inv => inv.Project)
+			.ThenInclude(p => p.Customer)
+			.ThenInclude(c => c.Business)
+			.Include(inv => inv.Payments)
+			.Where(inv => inv.Project.Customer.Business.UserId == userId && inv.AmountDue > 0)
+			.AsSplitQuery()
+			.ToArrayAsync();
+	}
+
+	private async Task Delete(Invoice invoice)
+	{
+		var ok = await Dialogs.Confirm("This will delete the invoice");
+		if (!ok.HasValue || !ok.Value) return;	
+
+		using var db = DbFactory.CreateDbContext();
+		await db.DeleteInvoiceAsync(invoice.Id);
+		await Refresh();
+	}
+}

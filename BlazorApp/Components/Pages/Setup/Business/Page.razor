@@ -28,6 +28,9 @@
 	<label>Hourly Rate:</label>
 	<RadzenNumeric @bind-Value="business.HourlyRate" Placeholder="Hourly Rate" />
 
+	<label>Next Invoice #:</label>
+	<RadzenNumeric @bind-Value="business.NextInvoiceNumber" />
+
 	<RadzenButton Text="Save" Icon="save" ButtonType="ButtonType.Submit" />
 	<RadzenButton Text="New" Icon="add_circle" Click="() => { business = new(); View.BusinessId = 0; }" />
 </EditForm>

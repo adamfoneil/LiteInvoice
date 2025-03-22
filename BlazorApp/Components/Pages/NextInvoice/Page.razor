@@ -3,16 +3,20 @@
 @inject ViewState View
 
 <h3>Next Invoice</h3>
-<div class="d-flex align-items-center">
-	<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
-	<RadzenDropDown @bind-Value="customerId" Data="customers[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
-	<RadzenDropDown @bind-Value="projectId" Data="projects[customerId]" ValueProperty="Id" TextProperty="Name" />
+<div class="d-flex align-items-center justify-content-between">
+	<div class="d-flex align-items-center">
+		<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
+		<RadzenDropDown @bind-Value="customerId" Data="customers[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
+		<RadzenDropDown @bind-Value="projectId" Data="projects[customerId]" ValueProperty="Id" TextProperty="Name" Change="RecalcTotal" />
+	</div>
+	<RadzenButton Text="@postButtonText" Icon="point_of_sale" Click="PostInvoice" Disabled="amount == 0" />
 </div>
 
 <h4 class="mt-3">Hours</h4>
-<Hours ProjectId="projectId" />
+<Hours ProjectId="projectId" Updated="RecalcTotal" />
 
 <h4 class="mt-3">Expenses</h4>
+<Expenses ProjectId="projectId" Updated="RecalcTotal" />
 
 @code {
 	private int userId;
@@ -21,6 +25,8 @@
 	private Business[] businesses = [];
 	private ILookup<int, Customer> customers = Enumerable.Empty<Customer>().ToLookup(row => row.BusinessId);
 	private ILookup<int, Project> projects = Enumerable.Empty<Project>().ToLookup(row => row.CustomerId);
+	private decimal amount;
+	private string postButtonText => $"Post {amount:c2}";
 
 	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
 
@@ -32,5 +38,22 @@
 		businesses = await db.Businesses.Where(row => row.UserId == userId).ToArrayAsync();
 		customers = (await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync()).ToLookup(row => row.BusinessId);
 		projects = (await db.Projects.Include(p => p.Customer).ThenInclude(c => c.Business).Where(p => p.Customer.Business.UserId == userId).ToArrayAsync()).ToLookup(row => row.CustomerId);
+	}
+
+	private async Task RecalcTotal()
+	{
+		using var db = DbFactory.CreateDbContext();
+		var (_, _, total) = await db.GetInvoiceDataAsync(projectId);
+		amount = total;
+	}
+
+	private async Task PostInvoice()
+	{
+		using var db = DbFactory.CreateDbContext();
+		var invoice = await db.CreateInvoiceAsync(projectId);
+		await RecalcTotal();
+		await Dialogs.OpenAsync("Invoice Created", ds =>		
+			@<h4>Invoice @invoice.Number Created</h4>
+		);
 	}
 }
