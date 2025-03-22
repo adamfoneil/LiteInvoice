@@ -13,8 +13,9 @@ public class Invoice : BaseEntity
 	/// json data of HoursEntry and Expense rows
 	/// </summary>
 	public string Data { get; set; } = default!;
+	public string HashId { get; set; } = default!;
 
 	public Project Project { get; set; } = default!;
 	public ICollection<InvoiceLink> Links { get; set; } = [];
-	public ICollection<Payment> Payments { get; set; } = [];
+	public ICollection<Payment> Payments { get; set; } = [];	
 }

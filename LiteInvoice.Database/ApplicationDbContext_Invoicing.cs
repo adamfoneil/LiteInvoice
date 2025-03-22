@@ -31,7 +31,7 @@ public partial class ApplicationDbContext
 		ReferenceHandler = ReferenceHandler.IgnoreCycles
 	};
 
-	public async Task<Invoice> CreateInvoiceAsync(int projectId, string? description = null)
+	public async Task<Invoice> CreateInvoiceAsync(int projectId, Func<int, string> hashMethod, string? description = null)
 	{
 		ChangeTracker.Clear();
 
@@ -50,6 +50,7 @@ public partial class ApplicationDbContext
 			AmountDue = amount,
 			Date = DateTime.UtcNow,
 			Description = description,
+			HashId = "dummy",
 			Data = JsonSerializer.Serialize(new InvoiceData() { Hours = hours, Expenses = expenses }, DefaultSettings)
 		};
 
@@ -58,6 +59,9 @@ public partial class ApplicationDbContext
 		Hours.RemoveRange(hours);
 		Expenses.RemoveRange(expenses);
 		await SaveChangesAsync();
+
+		await Invoices.Where(row => row.Id == invoice.Id)
+			.ExecuteUpdateAsync(row => row.SetProperty(i => i.HashId, hashMethod(invoice.Id)));
 
 		return invoice;
 	}

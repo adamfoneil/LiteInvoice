@@ -3,6 +3,7 @@ using BlazorApp;
 using BlazorApp.Components;
 using BlazorApp.Components.Account;
 using CoreNotify.MailerSend.Extensions;
+using HashidsNet;
 using LiteInvoice.Database;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +18,11 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient();
 builder.Services.AddRadzenComponents();
+builder.Services.AddRazorPages();
 
+builder.Services.AddSingleton(sp => new Hashids(
+	builder.Configuration["Hashids:Salt"], 
+	minHashLength: int.TryParse(builder.Configuration["Hashids:MinLength"], out var value) ? value : 6));
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
@@ -59,11 +64,10 @@ else
 }
 
 app.UseHttpsRedirection();
-
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapRazorPages();
 app.MapRazorComponents<App>()
 	.AddInteractiveServerRenderMode();
 

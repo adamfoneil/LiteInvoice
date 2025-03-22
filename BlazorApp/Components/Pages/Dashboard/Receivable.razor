@@ -1,4 +1,5 @@
 ﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject Hashids Hashids
 
 <RadzenDataGrid TItem="Invoice" Data="invoices">
 	<Columns>
@@ -12,6 +13,7 @@
 		<RadzenDataGridColumn TItem="Invoice" Title="Date" Property="Date" FormatString="{0:M/d/yy}" />
 		<RadzenDataGridColumn TItem="Invoice">
 			<Template>
+
 				<RadzenButton Text="Delete" Click="() => Delete(context)" />
 			</Template>
 		</RadzenDataGridColumn>
