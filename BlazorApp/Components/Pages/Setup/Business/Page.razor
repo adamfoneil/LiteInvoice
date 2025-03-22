@@ -41,12 +41,9 @@
 	{
 		using var db = DbFactory.CreateDbContext();
 
-		await RefreshBusinesses(db);		
+		await RefreshBusinesses(db);
 
-		if (businesses.Any() && View.BusinessId == 0)
-		{
-			View.BusinessId = businesses.First().Id;			
-		}
+		View.Initialize(businesses);
 
 		SelectBusiness();
 	}

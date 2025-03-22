@@ -59,11 +59,9 @@
 			.Where(b => b.UserId == userId)
 			.ToArrayAsync();
 
-		if (businesses.Any() && View.BusinessId == 0) 
-		{
-			View.BusinessId = businesses.First().Id;
-			await SelectBusiness();
-		}
+		View.Initialize(businesses);
+
+		await SelectBusiness();
 	}
 
 	private async Task SelectBusiness()
