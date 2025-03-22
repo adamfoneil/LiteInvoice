@@ -19,4 +19,5 @@ public class Customer : BaseEntity, IMailingAddress
 	public Business Business { get; set; } = default!;
 	public ICollection<Project> Projects { get; set; } = [];
 	public ICollection<Payment> Payments { get; set; } = [];
+	public ICollection<PaymentMethodCustomer> PaymentMethodCustomers { get; set; } = [];
 }

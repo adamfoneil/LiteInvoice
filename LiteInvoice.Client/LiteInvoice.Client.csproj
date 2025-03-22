@@ -18,6 +18,7 @@
     <Compile Include="..\LiteInvoice.Database\InvoiceLink.cs" Link="InvoiceLink.cs" />
     <Compile Include="..\LiteInvoice.Database\Payment.cs" Link="Payment.cs" />
     <Compile Include="..\LiteInvoice.Database\PaymentMethod.cs" Link="PaymentMethod.cs" />
+    <Compile Include="..\LiteInvoice.Database\PaymentMethodCustomer.cs" Link="PaymentMethodCustomer.cs" />
     <Compile Include="..\LiteInvoice.Database\Project.cs" Link="Project.cs" />
     <Compile Include="..\LiteInvoice.Database\StripeData.cs" Link="StripeData.cs" />
   </ItemGroup>

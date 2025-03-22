@@ -1,4 +1,5 @@
 ﻿using Database.Conventions;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LiteInvoice.Database;
 
@@ -46,7 +47,18 @@ public class PaymentMethod : BaseEntity
 	/// </summary>
 	public string? Instructions { get; set; }
 	public bool IsActive { get; set; } = true;
+	/// <summary>
+	/// show with all customers by default
+	/// </summary>
+	public bool DefaultVisible { get; set; }
+
+	/// <summary>
+	/// used in UI to determine if this payment method should be shown to the customer
+	/// </summary>
+	[NotMapped]
+	public bool IsEnabled { get; set; }
 
 	public Business Business { get; set; } = default!;
 	public StripeData? StripeConfig { get; set; }
+	public ICollection<PaymentMethodCustomer> PaymentMethodCustomers { get; set; } = [];
 }

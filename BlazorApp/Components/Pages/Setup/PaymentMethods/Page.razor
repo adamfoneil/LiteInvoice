@@ -3,22 +3,29 @@
 @inject ViewState View
 
 <h3>Payment Methods</h3>
-<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="Refresh" Placeholder="business" />
+<div class="d-flex align-items-center justify-content-between">
+	<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="Refresh" Placeholder="business" />
+	<div class="d-flex align-items-center">
+		<RadzenCheckBox @bind-Value="manageCustomers" class="me-2" />
+		<label class="me-2">Manage for customer:</label>
+		<RadzenDropDown @bind-Value="customerId" Data="customersByBusiness[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Change="Refresh" Disabled="!manageCustomers" />
+	</div>
+</div>
 
 <GridInsertButton Grid="grid" TItem="PaymentMethod" OnCreateItem="() => new PaymentMethod() { BusinessId = View.BusinessId }" />
 <RadzenDataGrid TItem="PaymentMethod" Data="paymentMethods" RowCreate="Save" RowUpdate="Save" @ref="grid">
 	<Columns>
-		<RadzenDataGridColumn TItem="PaymentMethod" Property="Name" Title="Name">
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="Name" Title="Name" Width="140px">
 			<EditTemplate>
 				<RadzenTextBox @bind-Value="context.Name" MaxLength="50" />
 			</EditTemplate>
 		</RadzenDataGridColumn>
-		<RadzenDataGridColumn TItem="PaymentMethod" Property="Type" Title="Type">
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="Type" Title="Type" Width="140px">
 			<EditTemplate>
 				<RadzenDropDown @bind-Value="context.Type" Data="Enum.GetValues<PaymentMethodType>()" />
 			</EditTemplate>
 		</RadzenDataGridColumn>
-		<RadzenDataGridColumn TItem="PaymentMethod" Property="Data" Title="Data">
+		<RadzenDataGridColumn TItem="PaymentMethod" Title="Data">
 			<Template>
 				<RadzenText Text="@context.Instructions" Visible="!string.IsNullOrEmpty(context.Instructions)" Style="white-space:normal" />
 				<RadzenText Text="@context.Data" Visible="context.Type == PaymentMethodType.StaticLink" Style="white-space:normal" />
@@ -26,20 +33,48 @@
 				<BusinessPhone Visible="context.Type == PaymentMethodType.BusinessPhone" Business="@context.Business" />
 			</Template>
 			<EditTemplate>
-				<RadzenTextArea @bind-Value="context.Instructions" MaxLength="255" Placeholder="instructions for customers" />
+				<div>
+					<RadzenTextArea @bind-Value="context.Instructions" MaxLength="255" Placeholder="instructions for customers" />
+				</div>
+				
 				<RadzenText Visible="context.Type != PaymentMethodType.StaticLink" Text="n/a" />
-				<RadzenTextArea @bind-Value="context.Data" MaxLength="255" Visible="context.Type == PaymentMethodType.StaticLink" />
+
+				<div>
+					<RadzenTextArea @bind-Value="context.Data" MaxLength="255" Visible="context.Type == PaymentMethodType.StaticLink" />
+				</div>				
 			</EditTemplate>
 		</RadzenDataGridColumn>
-		<GridControls TItem="PaymentMethod" DeleteRow="Delete" Grid="grid" />
+
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="DefaultVisible" Title="Show with all Customers" Visible="!manageCustomers" Width="175px">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.DefaultVisible" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="PaymentMethod" Title="For This Customer" Visible="customerId != 0 && manageCustomers" Property="IsEnabled" Width="150px">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.IsEnabled" Change="() => ToggleEnabled(context)" title="This takes effect as soon as you click it" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<RadzenDataGridColumn TItem="PaymentMethod" Property="IsActive" Title="Active" Width="100px">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.IsActive" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+
+		<GridControls TItem="PaymentMethod" DeleteRow="Delete" Grid="grid" Width="110px"/>
 	</Columns>
 </RadzenDataGrid>
 
 @code {
+	private bool manageCustomers;
 	private RadzenDataGrid<PaymentMethod>? grid;
 	private Business[] businesses = [];	
 	private PaymentMethod[] paymentMethods = [];
 	private int userId;
+	private int customerId;
+	private ILookup<int, Customer> customersByBusiness = Enumerable.Empty<Customer>().ToLookup(c => c.BusinessId);
 
 	[CascadingParameter]
 	public ApplicationUser? CurrentUser { get; set; }
@@ -53,6 +88,9 @@
 
 		View.Initialize(businesses);
 
+		var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync();
+		customersByBusiness = customers.ToLookup(row => row.BusinessId);
+
 		await Refresh();
 	}
 
@@ -61,10 +99,20 @@
 		using var db = DbFactory.CreateDbContext();
 
 		paymentMethods = await db
-			.PaymentMethods
+			.PaymentMethods		
 			.Include(pm => pm.Business)
 			.Where(pm => pm.BusinessId == View.BusinessId)
 			.ToArrayAsync();
+
+		var pmCustomers = await db
+			.PaymentMethodCustomers	
+			.Where(cpm => cpm.CustomerId == customerId)
+			.ToArrayAsync();
+
+		foreach (var combinedInfo in pmCustomers.Join(paymentMethods, pm => pm.PaymentMethodId, pm => pm.Id, (pmc, pm) => (pmc, pm)))
+		{
+			combinedInfo.pm.IsEnabled = combinedInfo.pmc.IsEnabled;
+		}
 	}
 
 	private async Task Save(PaymentMethod row)
@@ -79,6 +127,24 @@
 	{
 		using var db = DbFactory.CreateDbContext();
 		db.PaymentMethods.Remove(row);
+		await db.SaveChangesAsync();
+	}
+
+	private async Task ToggleEnabled(PaymentMethod row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+
+		var pmCustomer = await db.PaymentMethodCustomers
+			.SingleOrDefaultAsync(pmc => pmc.CustomerId == customerId && pmc.PaymentMethodId == row.Id) ?? 
+			new()
+			{
+				CustomerId = customerId,
+				PaymentMethodId = row.Id,
+				IsEnabled = row.IsEnabled
+			};
+
+		db.PaymentMethodCustomers.Update(pmCustomer);
 		await db.SaveChangesAsync();
 	}
 }

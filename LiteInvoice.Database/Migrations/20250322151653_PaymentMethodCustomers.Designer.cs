@@ -3,6 +3,7 @@ using System;
 using LiteInvoice.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250322151653_PaymentMethodCustomers")]
+    partial class PaymentMethodCustomers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -600,9 +603,6 @@ namespace Database.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("boolean");
-
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -614,11 +614,6 @@ namespace Database.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("PaymentMethodId", "CustomerId")
-                        .IsUnique();
 
                     b.ToTable("PaymentMethodCustomers");
                 });
@@ -946,25 +941,6 @@ namespace Database.Migrations
                     b.Navigation("StripeConfig");
                 });
 
-            modelBuilder.Entity("LiteInvoice.Database.PaymentMethodCustomer", b =>
-                {
-                    b.HasOne("LiteInvoice.Database.Customer", "Customer")
-                        .WithMany("PaymentMethodCustomers")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LiteInvoice.Database.PaymentMethod", "PaymentMethod")
-                        .WithMany("PaymentMethodCustomers")
-                        .HasForeignKey("PaymentMethodId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-
-                    b.Navigation("PaymentMethod");
-                });
-
             modelBuilder.Entity("LiteInvoice.Database.Project", b =>
                 {
                     b.HasOne("LiteInvoice.Database.Customer", "Customer")
@@ -1054,8 +1030,6 @@ namespace Database.Migrations
 
             modelBuilder.Entity("LiteInvoice.Database.Customer", b =>
                 {
-                    b.Navigation("PaymentMethodCustomers");
-
                     b.Navigation("Payments");
 
                     b.Navigation("Projects");
@@ -1066,11 +1040,6 @@ namespace Database.Migrations
                     b.Navigation("Links");
 
                     b.Navigation("Payments");
-                });
-
-            modelBuilder.Entity("LiteInvoice.Database.PaymentMethod", b =>
-                {
-                    b.Navigation("PaymentMethodCustomers");
                 });
 
             modelBuilder.Entity("LiteInvoice.Database.Project", b =>

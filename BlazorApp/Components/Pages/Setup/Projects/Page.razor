@@ -57,8 +57,8 @@
 
 		using var db = DbFactory.CreateDbContext();
 		businesses = await db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
-		var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync();
-		customersByBusiness = customers.ToLookup(row => row.BusinessId);
+			var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync();
+			customersByBusiness = customers.ToLookup(row => row.BusinessId);
 
 		View.Initialize(businesses);
 	}
