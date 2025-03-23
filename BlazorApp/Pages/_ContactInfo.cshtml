@@ -1,0 +1,8 @@
+﻿@using BlazorApp.Extensions
+@using Database.Interfaces
+@model IContactInfo
+
+<div><strong>@Model.Name</strong></div>
+<div>@Model.Address</div>
+<div>@Model.City, @Model.State @Model.Zip</div>
+<div>@Model.Phone.ToPhoneNumber() | @Model.Email</div>

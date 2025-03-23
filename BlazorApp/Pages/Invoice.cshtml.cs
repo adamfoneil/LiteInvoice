@@ -3,6 +3,8 @@ using LiteInvoice.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using static LiteInvoice.Database.ApplicationDbContext;
 
 namespace BlazorApp.Pages;
 
@@ -17,6 +19,8 @@ public class InvoiceModel(
 	public string InvoiceId { get; set; } = string.Empty;
 
 	public Invoice Invoice { get; private set; } = new();
+	public InvoiceData Data { get; private set; } = new();
+	public decimal Total => Data.Hours.Sum(row => row.Hours * row.Rate) + Data.Expenses.Sum(row => row.Amount);
 
 	public async Task<IActionResult> OnGetAsync()
 	{
@@ -32,6 +36,8 @@ public class InvoiceModel(
 				.ThenInclude(c => c.Business)
 				.SingleOrDefaultAsync(row => row.HashId == InvoiceId) 
 				?? throw new Exception($"Not found");
+
+			Data = JsonSerializer.Deserialize<InvoiceData>(Invoice.Data) ?? throw new Exception("Failed to deserialize invoice data");
 
 			return Page();
 		}
