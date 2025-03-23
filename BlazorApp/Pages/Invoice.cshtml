@@ -10,7 +10,7 @@
 	<div>
 		<h1>Invoice @Model.Invoice.Number</h1>
 		<div>from @biz.Name</div>
-		@Model.Invoice.Date.ToString("M/d/yy")
+		@Model.Invoice.Date.ToString("M/d/yy") | <strong>@Model.Total.ToString("c2")</strong>
 	</div>	
 
 	<div class="me-4">
@@ -21,72 +21,44 @@
 
 <hr />
 
-<section>
+<section class="mt-4">
 	<div>Bill to:</div>
 	<partial name="_ContactInfo" model="@Model.Invoice.Project.Customer" />
 </section>
 
-<hr />
-
-<section>	
-	@if (Model.Data.Hours.Any())
-	{
-		<h2>Hours</h2>
-		<table class="table table-striped">
+<section class="mt-4">
+	<table class="table table-striped">
+		<tr>
+			<th>Date</th>
+			<th>Description</th>
+			<th class="text-end">Qty @@ Rate</th>
+			<th class="text-end">Amount</th>
+		</tr>
+		@foreach (var hour in Model.Data.Hours)
+		{
 			<tr>
-				<th>Date</th>
-				<th>Description</th>
-				<th class="text-end">Hours</th>
-				<th class="text-end">Rate</th>
-				<th class="text-end">Total</th>
+				<td>@hour.Date.ToString("M/d/yy")</td>
+				<td>@hour.Description</td>
+				<td class="text-end">@hour.Hours.ToString("n2") hrs @@ @hour.Rate.ToString("c2")</td>				
+				<td class="text-end">@((hour.Hours * hour.Rate).ToString("c2"))</td>
 			</tr>
-			@foreach (var hour in Model.Data.Hours)
-			{
-				<tr>
-					<td>@hour.Date.ToString("M/d/yy")</td>
-					<td>@hour.Description</td>
-					<td class="text-end">@hour.Hours.ToString("n2")</td>
-					<td class="text-end">@hour.Rate.ToString("c2")</td>
-					<td class="text-end">@((hour.Hours * hour.Rate).ToString("c2"))</td>
-				</tr>
-			}
+		}
+		@foreach (var row in Model.Data.Expenses)
+		{
 			<tr>
-				<td colspan="3"></td>
-				<td class="text-end">Total:</td>
-				<td class="text-end">@(Model.Data.Hours.Sum(row => row.Hours * row.Rate).ToString("c2"))</td>
+				<td>@row.Date.ToString("M/d/yy")</td>
+				<td>@row.Description</td>
+				<td><!--empty cell--></td>
+				<td class="text-end">@row.Amount.ToString("c2")</td>
 			</tr>
-		</table>
-	}
-
-	@if (Model.Data.Expenses.Any())
-	{
-		<h2>Expenses</h2>
-		<table class="table table-striped">
-			<tr>
-				<th>Date</th>
-				<th>Description</th>
-				<th class="text-end">Amount</th>
-			</tr>
-			@foreach (var row in Model.Data.Expenses)
-			{
-				<tr>
-					<td>@row.Date.ToString("M/d/yy")</td>
-					<td>@row.Description</td>
-					<td class="text-end">@row.Amount.ToString("c2")</td>
-				</tr>
-			}
-			<tr>
-				<td></td>
-				<td class="text-end">Total:</td>
-				<td class="text-end">@(Model.Data.Expenses.Sum(row => row.Amount).ToString("c2"))</td>
-			</tr>
-		</table>
-	}
+		}
+		<tr>
+			<td colspan="3"></td>
+			<td class="text-end fw-bold border-top">@Model.Total.ToString("c2")</td>
+		</tr>
+	</table>
 </section>
 
-<section>	
-	<div class="d-flex justify-content-center">		
-		<h3 class="me-2">Total:</h3>
-		<h3 class="ms-2">@Model.Total.ToString("c2")</h3>
-	</div>
+<section class="mt-4 d-flex justify-content-center">
+
 </section>
