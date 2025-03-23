@@ -1,7 +1,24 @@
 ﻿@page "/Invoice/{id}"
+@using BlazorApp.Extensions
 @using BlazorApp.Pages
 @model BlazorApp.Pages.InvoiceModel
-@{
-}
 
-<h1>Invoice @Model.Invoice.Number</h1>
+<div class="d-flex justify-content-between">
+	<div>
+		<h1>Invoice @Model.Invoice.Number</h1>
+		@Model.Invoice.Date.ToString("M/d/yy")
+	</div>
+	
+	@{
+		var biz = Model.Invoice.Project.Customer.Business;
+	}
+	<div>
+		<div>Pay to:</div>
+		<div><strong>@biz.Name</strong></div>
+		<div>@biz.Address</div>
+		<div>@biz.City, @biz.State @biz.Zip</div>
+		<div>contact: @biz.Contace<br />@biz.Phone.ToPhoneNumber() | @biz.Email</div>
+	</div>
+</div>
+
+<hr />

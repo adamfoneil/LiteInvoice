@@ -10,6 +10,9 @@
 	<label>Business Name:</label>
 	<RadzenTextBox @bind-Value="business.Name" Placeholder="Business Name" MaxLength="50" />
 
+	<label>Contact Name:</label>
+	<RadzenTextBox @bind-Value="business.Contact" MaxLength="50" />
+
 	<label>Address:</label>
 	<RadzenTextBox @bind-Value="business.Address" Placeholder="Address" MaxLength="100" />
 
@@ -24,6 +27,9 @@
 
 	<label>Phone:</label>
 	<RadzenTextBox @bind-Value="business.Phone" Placeholder="Phone" MaxLength="20" />
+
+	<label>Email:</label>
+	<RadzenTextBox @bind-Value="business.Email" MaxLength="50" />
 
 	<label>Hourly Rate:</label>
 	<RadzenNumeric @bind-Value="business.HourlyRate" Placeholder="Hourly Rate" />

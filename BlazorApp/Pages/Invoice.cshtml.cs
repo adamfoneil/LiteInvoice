@@ -7,10 +7,10 @@ using Microsoft.EntityFrameworkCore;
 namespace BlazorApp.Pages;
 
 public class InvoiceModel(
-	Hashids hashids,
+	ILogger<InvoiceModel> logger,
 	IDbContextFactory<ApplicationDbContext> dbFactory) : PageModel
 {
-	private readonly Hashids _hashids = hashids;
+	private readonly ILogger<InvoiceModel> _logger = logger;
 	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;
 
 	[BindProperty(SupportsGet = true, Name = "id")]
@@ -18,11 +18,27 @@ public class InvoiceModel(
 
 	public Invoice Invoice { get; private set; } = new();
 
-	public async Task OnGetAsync()
-    {		
-		using var db = _dbFactory.CreateDbContext();
-		Invoice = await db.Invoices.SingleOrDefaultAsync(row => row.HashId == InvoiceId) ?? throw new Exception("invoice not found");
+	public async Task<IActionResult> OnGetAsync()
+	{
+		try
+		{
+			_logger.LogDebug("Viewing invoice {InvoiceId}", InvoiceId);
 
+			using var db = _dbFactory.CreateDbContext();
 
+			Invoice = await db.Invoices
+				.Include(inv => inv.Project)
+				.ThenInclude(p => p.Customer)
+				.ThenInclude(c => c.Business)
+				.SingleOrDefaultAsync(row => row.HashId == InvoiceId) 
+				?? throw new Exception($"Not found");
+
+			return Page();
+		}
+		catch (Exception exc)
+		{
+			_logger.LogError(exc, "Error retrieving invoice {InvoiceId}", InvoiceId);
+			return NotFound($"Error: {exc.Message}");
+		}
 	}
 }

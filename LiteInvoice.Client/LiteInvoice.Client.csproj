@@ -13,7 +13,7 @@
     <Compile Include="..\LiteInvoice.Database\Customer.cs" Link="Customer.cs" />
     <Compile Include="..\LiteInvoice.Database\ExpenseEntry.cs" Link="ExpenseEntry.cs" />
     <Compile Include="..\LiteInvoice.Database\HoursEntry.cs" Link="HoursEntry.cs" />
-    <Compile Include="..\LiteInvoice.Database\Interfaces\IMailingAddress.cs" Link="Interfaces\IMailingAddress.cs" />
+    <Compile Include="..\LiteInvoice.Database\Interfaces\IContactInfo.cs" Link="Interfaces\IContactInfo.cs" />
     <Compile Include="..\LiteInvoice.Database\Invoice.cs" Link="Invoice.cs" />
     <Compile Include="..\LiteInvoice.Database\InvoiceLink.cs" Link="InvoiceLink.cs" />
     <Compile Include="..\LiteInvoice.Database\Payment.cs" Link="Payment.cs" />
