@@ -59,7 +59,7 @@
 		await Refresh();
 	}
 
-	private async Task Refresh()
+	public async Task Refresh()
 	{
 		using var db = DbFactory.CreateDbContext();
 

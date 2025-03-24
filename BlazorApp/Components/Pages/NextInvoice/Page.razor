@@ -9,26 +9,37 @@
 		<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
 		<RadzenDropDown @bind-Value="customerId" Data="customers[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
 		<RadzenDropDown @bind-Value="projectId" Data="projects[customerId]" ValueProperty="Id" TextProperty="Name" Change="RecalcTotal" />
-	</div>
-	<RadzenButton Text="@postButtonText" Icon="point_of_sale" Click="PostInvoice" Disabled="amount == 0" Visible="!projectsById[projectId].IsTemplate" />
+	</div>	
+	<RadzenButton Text="@postButtonText" Icon="point_of_sale" Click="PostInvoice" Disabled="amount == 0 || IsTemplate()" />
 </div>
 
+<details class="mt-3">
+	<summary>Import from Template</summary>
+	<div class="ms-4">
+		<RadzenDropDown Data="templateProjects" @bind-Value="templateProjectId" ValueProperty="Id" TextProperty="Name" Change="ImportTemplate" />
+	</div>	
+</details>
+
 <h4 class="mt-3">Hours</h4>
-<Hours ProjectId="projectId" Updated="RecalcTotal" />
+<Hours ProjectId="projectId" Updated="RecalcTotal" @ref="hoursGrid" />
 
 <h4 class="mt-3">Expenses</h4>
-<Expenses ProjectId="projectId" Updated="RecalcTotal" />
+<Expenses ProjectId="projectId" Updated="RecalcTotal" @ref="expensesGrid" />
 
 @code {
 	private int userId;
 	private int customerId;
 	private int projectId;
+	private int templateProjectId;
 	private Business[] businesses = [];
 	private ILookup<int, Customer> customers = Enumerable.Empty<Customer>().ToLookup(row => row.BusinessId);
 	private ILookup<int, Project> projects = Enumerable.Empty<Project>().ToLookup(row => row.CustomerId);
 	private Dictionary<int, Project> projectsById = [];
 	private decimal amount;
 	private string postButtonText => $"Post {amount:c2}";
+	private Project[] templateProjects = [];
+	private Hours? hoursGrid;
+	private Expenses? expensesGrid;
 
 	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
 
@@ -42,6 +53,7 @@
 		var allProjects = await db.Projects.Include(p => p.Customer).ThenInclude(c => c.Business).Where(p => p.Customer.Business.UserId == userId).ToArrayAsync();
 		projects = allProjects.ToLookup(row => row.CustomerId);
 		projectsById = allProjects.ToDictionary(row => row.Id);
+		templateProjects = await db.Projects.Where(p => p.Customer.Business.UserId == userId && p.IsTemplate).ToArrayAsync();
 	}
 
 	private async Task RecalcTotal()
@@ -60,4 +72,30 @@
 			@<h4>Invoice @invoice.Number Created</h4>
 		);
 	}
+
+	private async Task ImportTemplate()
+	{
+		using var db = DbFactory.CreateDbContext();
+		var expenses = await db.Expenses.AsNoTracking().Where(row => row.ProjectId == templateProjectId).ToArrayAsync();
+
+		foreach (var exp in expenses)
+		{
+			db.Expenses.Add(new()
+			{
+				Date = DateOnly.FromDateTime(DateTime.Today),
+				ProjectId = projectId,
+				Description = exp.Description,
+				Amount = exp.Amount
+			});
+		}
+
+		await db.SaveChangesAsync();
+		await expensesGrid!.Refresh();
+		await hoursGrid!.Refresh();
+
+		templateProjectId = 0;
+		await RecalcTotal();
+	}
+
+	private bool IsTemplate() => projectId != 0 && projectsById.TryGetValue(projectId, out var project) ? project.IsTemplate : false;
 }
