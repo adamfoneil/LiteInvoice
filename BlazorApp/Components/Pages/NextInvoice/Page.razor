@@ -9,7 +9,7 @@
 		<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
 		<RadzenDropDown @bind-Value="customerId" Data="customers[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Change="() => { projectId = 0; }" />
 		<RadzenDropDown @bind-Value="projectId" Data="projects[customerId]" ValueProperty="Id" TextProperty="Name" Change="RecalcTotal" />
-	</div>	
+	</div>
 	<RadzenButton Text="@postButtonText" Icon="point_of_sale" Click="PostInvoice" Disabled="amount == 0 || IsTemplate()" />
 </div>
 

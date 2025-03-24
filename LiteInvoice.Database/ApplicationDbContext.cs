@@ -62,11 +62,13 @@ public class AppDbFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
 	private static IConfiguration Config => new ConfigurationBuilder()
 		.AddJsonFile("appsettings.json", optional: false)
+		.AddUserSecrets("f5546b2a-c3cb-490b-b6c8-dcf2a719c8d5")
 		.Build();
 
 	public ApplicationDbContext CreateDbContext(string[] args)
 	{
-		var connectionString = Config.GetConnectionString("DefaultConnection") ?? throw new Exception("Connection string 'DefaultConnection' not found");
+		var connectionName = args.Length == 1 ? args[0] : Config.GetValue<string>("ConnectionName") ?? "DefaultConnection";
+		var connectionString = Config.GetConnectionString(connectionName) ?? throw new Exception($"Connection string '{connectionName}' not found");
 		var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 		optionsBuilder.UseNpgsql(connectionString);
 		return new ApplicationDbContext(optionsBuilder.Options);
