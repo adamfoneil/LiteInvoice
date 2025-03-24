@@ -1,0 +1,50 @@
+﻿@page "/Customer/{id}"
+@model BlazorApp.Pages.CustomerModel
+
+<section class="d-flex justify-content-between">
+	@{
+		var biz = Model.Customer.Business;
+	}
+	<div>
+		<h3 class="mb-0">Projects and Invoices for</h3>
+		<h1 class="mt-0">@Model.Customer.Name</h1>
+	</div>
+
+	<div class="me-4">
+		<partial name="_ContactInfo" model="biz" />
+	</div>
+</section>
+
+<hr />
+
+<section class="mt-4">
+	@foreach (var p in Model.Customer.Projects)
+	{
+		<h2>@p.Name</h2>
+		@foreach (var invYearGroup in Model.InvoicesByProject[p.Id].GroupBy(inv => inv.Date.Year).OrderByDescending(grp => grp.Key))
+		{
+			<details>
+				<summary class="h3">@invYearGroup.Key</summary>
+				<table class="table ms-4">
+					<tr>
+						<th>Invoice #</th>
+						<th>Date</th>
+						<th class="text-end">Amount</th>
+						<th class="text-end">Paid</th>
+						<th class="text-end">Balance</th>
+					</tr>
+					@foreach (var inv in invYearGroup)
+					{
+						<tr>
+							<td><a href="/Invoice/@inv.HashId" target="_blank" class="btn btn-secondary">@inv.Number</a></td>
+							<td>@inv.Date.ToString("M/d/yy")</td>
+							<td class="text-end">@inv.AmountDue.ToString("c2")</td>
+							<td class="text-end"></td>
+							<td class="text-end"></td>
+						</tr>
+					}
+				</table>				
+			</details>
+		}
+	}
+</section>

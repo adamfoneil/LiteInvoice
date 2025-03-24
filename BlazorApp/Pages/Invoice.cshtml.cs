@@ -9,9 +9,11 @@ using static LiteInvoice.Database.ApplicationDbContext;
 namespace BlazorApp.Pages;
 
 public class InvoiceModel(
+	Hashids hashids,
 	ILogger<InvoiceModel> logger,
 	IDbContextFactory<ApplicationDbContext> dbFactory) : PageModel
 {
+	private readonly Hashids _hashids = hashids;
 	private readonly ILogger<InvoiceModel> _logger = logger;
 	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;
 
@@ -22,6 +24,7 @@ public class InvoiceModel(
 	public InvoiceData Data { get; private set; } = new();
 	public PaymentMethod[] PaymentMethods { get; private set; } = [];
 	public decimal Total => Data.Hours.Sum(row => row.Hours * row.Rate) + Data.Expenses.Sum(row => row.Amount);
+	public string CustomerId => _hashids.Encode(Invoice.Project.CustomerId);
 
 	public async Task<IActionResult> OnGetAsync()
 	{
