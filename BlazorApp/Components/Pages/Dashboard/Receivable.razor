@@ -3,23 +3,34 @@
 
 <RadzenDataGrid TItem="Invoice" Data="invoices">
 	<Columns>
-		<RadzenDataGridColumn TItem="Invoice" Property="Number" Title="Invoice #" />
+		<RadzenDataGridColumn TItem="Invoice" Property="Number" Title="Invoice #" Width="140px" />
 		<RadzenDataGridColumn TItem="Invoice" Title="Customer">
 			<Template>
 				@context.Project.Customer.Name
 			</Template>
 		</RadzenDataGridColumn>
-		<RadzenDataGridColumn TItem="Invoice" Title="Amount" Property="AmountDue" FormatString="{0:c2}" />
-		<RadzenDataGridColumn TItem="Invoice" Title="Balance" Property="BalanceDue" FormatString="{0:c2}" />
-		<RadzenDataGridColumn TItem="Invoice" Title="Date" Property="Date" FormatString="{0:M/d/yy}" />
+		<RadzenDataGridColumn TItem="Invoice" Title="Amount" Property="AmountDue" FormatString="{0:c2}" Width="120px" />
+		<RadzenDataGridColumn TItem="Invoice" Title="Balance" Property="BalanceDue" FormatString="{0:c2}" Width="120px" />
+		<RadzenDataGridColumn TItem="Invoice" Title="Date" Property="Date" FormatString="{0:M/d/yy}" Width="120px" />
 		<RadzenDataGridColumn TItem="Invoice">
 			<Template>
-				<a href="/Invoice/@context.HashId" target="_blank">View</a>
-				<RadzenButton Text="Delete" Click="() => Delete(context)" />
+				<a href="/Invoice/@context.HashId" target="_blank" class="me-3">View</a>
+				<RadzenButton Text="Delete" Click="() => Delete(context)" class="me-3" />
 				<RadzenButton Text="Payment..." Click="() => EnterPayment(context)" />
 			</Template>
 		</RadzenDataGridColumn>
 	</Columns>
+	<Template>
+		<ul>
+			@foreach (var pmt in context.Payments)
+			{
+				<li class="d-flex align-items-center">
+					<div class="me-3">@pmt.Amount.ToString("c2")</div>
+					<RadzenButton Click="() => DeletePayment(pmt)" Text="Delete" />
+				</li>
+			}
+		</ul>		
+	</Template>
 </RadzenDataGrid>
 
 @code {
@@ -80,8 +91,8 @@
 					<RadzenTextBox @bind-Value="payment.Data" Style="width:200px" />
 				</div>
 
-				<div class="d-flex justify-content-end">
-					<RadzenButton Text="OK" Click="() => Dialogs.Close(true)" />
+				<div class="d-flex justify-content-end mt-3">
+					<RadzenButton Text="OK" Click="() => Dialogs.Close(true)" class="me-2" />
 					<RadzenButton Text="Cancel" Click="() => Dialogs.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
 				</div>				
 			</div>
@@ -91,12 +102,20 @@
 
 		using var db = DbFactory.CreateDbContext();
 		db.CurrentUser = CurrentUser?.UserName;
-		
+
 		payment.InvoiceId = invoice.Id;
 		payment.IsManual = true;
 		db.Payments.Add(payment);
 		await db.SaveChangesAsync();
 		await Refresh();
 		payment = new();
+	}
+
+	private async Task DeletePayment(Payment payment)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.Payments.Remove(payment);
+		await db.SaveChangesAsync();
+		await Refresh();
 	}
 }
