@@ -98,7 +98,7 @@
 			</div>
 	);
 
-		if (!response) return; 
+		if (response is null) return;		
 
 		using var db = DbFactory.CreateDbContext();
 		db.CurrentUser = CurrentUser?.UserName;
