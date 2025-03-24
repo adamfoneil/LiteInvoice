@@ -20,6 +20,7 @@ public class InvoiceModel(
 
 	public Invoice Invoice { get; private set; } = new();
 	public InvoiceData Data { get; private set; } = new();
+	public PaymentMethod[] PaymentMethods { get; private set; } = [];
 	public decimal Total => Data.Hours.Sum(row => row.Hours * row.Rate) + Data.Expenses.Sum(row => row.Amount);
 
 	public async Task<IActionResult> OnGetAsync()
@@ -38,6 +39,23 @@ public class InvoiceModel(
 				?? throw new Exception($"Not found");
 
 			Data = JsonSerializer.Deserialize<InvoiceData>(Invoice.Data) ?? throw new Exception("Failed to deserialize invoice data");
+
+			var businessId = Invoice.Project.Customer.BusinessId;
+			
+			var paymentMethods = await db.PaymentMethods
+				.Where(pm => pm.BusinessId == businessId && pm.IsActive && pm.DefaultVisible)
+				.ToListAsync();
+
+			var customerId = Invoice.Project.CustomerId;
+
+			var customerPaymentMethods = await db.PaymentMethodCustomers
+				.Include(pm => pm.PaymentMethod)
+				.Where(pm => pm.CustomerId == customerId && pm.PaymentMethod.IsActive)
+				.Select(pm => pm.PaymentMethod)
+				.ToArrayAsync();
+
+			paymentMethods.AddRange(customerPaymentMethods.Where(pm => !paymentMethods.Any(gpm => gpm.Id == pm.Id)));
+			PaymentMethods = [.. paymentMethods];
 
 			return Page();
 		}

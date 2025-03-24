@@ -28,7 +28,7 @@
 		<RadzenDataGridColumn TItem="PaymentMethod" Title="Data">
 			<Template>
 				<RadzenText Text="@context.Instructions" Visible="!string.IsNullOrEmpty(context.Instructions)" Style="white-space:normal" />
-				<RadzenText Text="@context.Data" Visible="context.Type == PaymentMethodType.StaticLink" Style="white-space:normal" />
+				<RadzenText Text="@context.Data" Visible="context.Type == PaymentMethodType.StaticLink" Style="white-space:normal" />				
 				<MailingAddress Visible="context.Type == PaymentMethodType.MailingAddress" Business="@context.Business" />
 				<BusinessPhone Visible="context.Type == PaymentMethodType.BusinessPhone" Business="@context.Business" />
 			</Template>

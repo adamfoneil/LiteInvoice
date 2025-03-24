@@ -1,6 +1,7 @@
 ﻿@page "/Invoice/{id}"
 @using BlazorApp.Extensions
 @using BlazorApp.Pages
+@using LiteInvoice.Database
 @model BlazorApp.Pages.InvoiceModel
 
 <section class="d-flex justify-content-between">
@@ -59,6 +60,36 @@
 	</table>
 </section>
 
-<section class="mt-4 d-flex justify-content-center">
-
-</section>
+@if (Model.PaymentMethods.Any())
+{
+	<section class="mt-4">
+		<h4 class="text-center">Payment Methods</h4>
+		<div class="d-flex justify-content-center">
+			@foreach (var pm in Model.PaymentMethods)
+			{
+				<div class="card mx-2 p-2">
+					<div class="card-title"><strong>@pm.Name</strong></div>
+					@if (!string.IsNullOrWhiteSpace(pm.Instructions))
+					{
+						<details style="max-width:300px">
+							<summary>More Info</summary>
+							<p>@pm.Instructions</p>
+						</details>
+					}
+					@if (pm.Type == PaymentMethodType.MailingAddress)
+					{
+						<partial name="_MailingAddress" model="Model.Invoice.Project.Customer.Business" />
+					}
+					@if (pm.Type == PaymentMethodType.StaticLink)
+					{
+						<a href="@pm.Data" target="_blank">@pm.Data</a>
+					}
+					@if (pm.Type == PaymentMethodType.BusinessPhone)
+					{
+						<p>@Model.Invoice.Project.Customer.Business.Phone.ToPhoneNumber()</p>
+					}
+				</div>
+			}
+		</div>
+	</section>
+}
