@@ -3,6 +3,7 @@ using System;
 using LiteInvoice.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250324153143_RemoveInvoiceCustomerId")]
+    partial class RemoveInvoiceCustomerId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -501,6 +504,9 @@ namespace Database.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Data")
                         .HasColumnType("text");
 
@@ -518,6 +524,8 @@ namespace Database.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("InvoiceId");
 
@@ -917,11 +925,19 @@ namespace Database.Migrations
 
             modelBuilder.Entity("LiteInvoice.Database.Payment", b =>
                 {
+                    b.HasOne("LiteInvoice.Database.Customer", "Customer")
+                        .WithMany("Payments")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("LiteInvoice.Database.Invoice", "Invoice")
                         .WithMany("Payments")
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Customer");
 
                     b.Navigation("Invoice");
                 });
@@ -1052,6 +1068,8 @@ namespace Database.Migrations
             modelBuilder.Entity("LiteInvoice.Database.Customer", b =>
                 {
                     b.Navigation("PaymentMethodCustomers");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("Projects");
                 });

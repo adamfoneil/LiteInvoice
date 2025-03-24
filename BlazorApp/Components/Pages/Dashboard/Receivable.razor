@@ -10,11 +10,13 @@
 			</Template>
 		</RadzenDataGridColumn>
 		<RadzenDataGridColumn TItem="Invoice" Title="Amount" Property="AmountDue" FormatString="{0:c2}" />
+		<RadzenDataGridColumn TItem="Invoice" Title="Balance" Property="BalanceDue" FormatString="{0:c2}" />
 		<RadzenDataGridColumn TItem="Invoice" Title="Date" Property="Date" FormatString="{0:M/d/yy}" />
 		<RadzenDataGridColumn TItem="Invoice">
 			<Template>
 				<a href="/Invoice/@context.HashId" target="_blank">View</a>
 				<RadzenButton Text="Delete" Click="() => Delete(context)" />
+				<RadzenButton Text="Payment..." Click="() => EnterPayment(context)" />
 			</Template>
 		</RadzenDataGridColumn>
 	</Columns>
@@ -23,6 +25,7 @@
 @code {
 	private int userId;
 	private Invoice[] invoices = [];
+	private Payment payment = new();
 
 	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
 
@@ -33,16 +36,20 @@
 	}
 
 	private async Task Refresh()
-	{
+	{		
 		using var db = DbFactory.CreateDbContext();
 		invoices = await db.Invoices
 			.Include(inv => inv.Project)
 			.ThenInclude(p => p.Customer)
 			.ThenInclude(c => c.Business)
 			.Include(inv => inv.Payments)
-			.Where(inv => inv.Project.Customer.Business.UserId == userId && inv.AmountDue > 0)
-			.AsSplitQuery()
-			.ToArrayAsync();
+			.Where(inv => 
+				inv.Project.Customer.Business.UserId == userId &&
+				inv.Payments.Sum(p => p.Amount) < inv.AmountDue)
+			.AsSplitQuery()			
+			.ToArrayAsync();		
+
+		foreach (var row in invoices) row.BalanceDue = row.AmountDue - row.Payments.Sum(p => p.Amount);
 	}
 
 	private async Task Delete(Invoice invoice)
@@ -53,5 +60,44 @@
 		using var db = DbFactory.CreateDbContext();
 		await db.DeleteInvoiceAsync(invoice.Id);
 		await Refresh();
+	}
+
+	private async Task EnterPayment(Invoice invoice)
+	{		
+		var response = await Dialogs.OpenAsync("Enter Payment", (ds) =>
+			@<div>
+				<div class="edit-form">
+					<label>Invoice #:</label>
+					<label>@invoice.Number - @invoice.Project.Customer.Name</label>
+
+					<label>Balance Due:</label>
+					<label>@invoice.BalanceDue.ToString("c2")</label>
+
+					<label>Amount:</label>
+					<RadzenNumeric @bind-Value="payment.Amount" Style="width:120px" />
+
+					<label>Description:</label>
+					<RadzenTextBox @bind-Value="payment.Data" Style="width:200px" />
+				</div>
+
+				<div class="d-flex justify-content-end">
+					<RadzenButton Text="OK" Click="() => Dialogs.Close(true)" />
+					<RadzenButton Text="Cancel" Click="() => Dialogs.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
+				</div>				
+			</div>
+	);
+
+		if (!response) return; 
+
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = CurrentUser?.UserName;
+
+		payment.Invoice = null!;
+		payment.InvoiceId = invoice.Id;
+		payment.IsManual = true;
+		db.Payments.Add(payment);
+		await db.SaveChangesAsync();
+		await Refresh();
+		payment = new();
 	}
 }

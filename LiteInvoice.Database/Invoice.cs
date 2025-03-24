@@ -1,6 +1,7 @@
 ﻿using Database.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LiteInvoice.Database;
 
@@ -19,7 +20,10 @@ public class Invoice : BaseEntity
 
 	public Project Project { get; set; } = default!;
 	public ICollection<InvoiceLink> Links { get; set; } = [];
-	public ICollection<Payment> Payments { get; set; } = [];	
+	public ICollection<Payment> Payments { get; set; } = [];
+
+	[NotMapped]
+	public decimal BalanceDue { get; set; }
 }
 
 public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>

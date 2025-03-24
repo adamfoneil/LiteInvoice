@@ -19,8 +19,7 @@ public class Customer : BaseEntity, IContactInfo
 	public decimal HourlyRate { get; set; }
 
 	public Business Business { get; set; } = default!;
-	public ICollection<Project> Projects { get; set; } = [];
-	public ICollection<Payment> Payments { get; set; } = [];
+	public ICollection<Project> Projects { get; set; } = [];	
 	public ICollection<PaymentMethodCustomer> PaymentMethodCustomers { get; set; } = [];
 }
 

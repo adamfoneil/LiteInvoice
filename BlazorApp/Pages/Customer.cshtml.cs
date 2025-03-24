@@ -20,7 +20,7 @@ public class CustomerModel(
 
 	public Customer Customer { get; private set; } = new();
 	public ILookup<int, Invoice> InvoicesByProject => Customer.Projects.SelectMany(p => p.Invoices).ToLookup(i => i.ProjectId);
-	public ILookup<int, Payment> PaymentsByInvoice { get; private set; } = Enumerable.Empty<Payment>().ToLookup(row => row.InvoiceId ?? 0);
+	public ILookup<int, Payment> PaymentsByInvoice { get; private set; } = Enumerable.Empty<Payment>().ToLookup(row => row.InvoiceId);
 
 	public decimal TotalPayments(int invoiceId) => PaymentsByInvoice[invoiceId].Sum(row => row.Amount);
 	public decimal BalanceDue(Invoice invoice) => invoice.AmountDue - TotalPayments(invoice.Id);
@@ -42,10 +42,13 @@ public class CustomerModel(
 				?? throw new Exception("Customer not found");
 
 			var payments = await db.Payments
-				.Where(row => row.CustomerId == customerId)
+				.Include(p => p.Invoice)
+				.ThenInclude(inv => inv.Project)
+				.ThenInclude(p => p.Customer)
+				.Where(row => row.Invoice.Project.CustomerId == customerId)
 				.ToArrayAsync();
 
-			PaymentsByInvoice = payments.ToLookup(p => p.InvoiceId ?? 0);
+			PaymentsByInvoice = payments.ToLookup(p => p.InvoiceId);
 
 			return Page();
 		}
