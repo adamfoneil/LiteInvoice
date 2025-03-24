@@ -14,7 +14,7 @@ public class Payment : BaseEntity
 	/// </summary>
 	public bool IsManual { get; set; }
 
-	public Invoice Invoice { get; set; } = new();
+	public Invoice Invoice { get; set; } = null!;
 }
 
 public class PaymentConfiguration : IEntityTypeConfiguration<Payment>

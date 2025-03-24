@@ -91,8 +91,7 @@
 
 		using var db = DbFactory.CreateDbContext();
 		db.CurrentUser = CurrentUser?.UserName;
-
-		payment.Invoice = null!;
+		
 		payment.InvoiceId = invoice.Id;
 		payment.IsManual = true;
 		db.Payments.Add(payment);
