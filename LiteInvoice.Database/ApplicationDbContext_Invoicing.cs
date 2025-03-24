@@ -41,6 +41,8 @@ public partial class ApplicationDbContext
 			.Where(p => p.Id == projectId)
 			.SingleOrDefaultAsync() ?? throw new Exception("Project not found");
 
+		if (project.IsTemplate) throw new Exception("Cannot create invoice from template project");
+
 		var (hours, expenses, amount) = await GetInvoiceDataAsync(projectId);
 
 		var invoice = new Invoice()

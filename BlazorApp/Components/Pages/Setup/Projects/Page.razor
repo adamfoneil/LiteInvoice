@@ -27,17 +27,18 @@
 				<RadzenNumeric @bind-Value="context.HourlyRate" />
 			</EditTemplate>
 		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="Project" Property="IsTemplate" Title="Template">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.IsTemplate" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="Project" Property="IsActive" Title="Active">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.IsActive" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
 		<GridControls TItem="Project" Grid="grid" DeleteRow="Delete" />
 	</Columns>
-	<Template>
-		<div class="edit-form">
-			<label>Monthly Retainer:</label>
-			<RadzenNumeric @bind-Value="context.MonthlyRetainer" Format="c2" />
-
-			<label>Description:</label>
-			<RadzenTextBox @bind-Value="context.MonthlyRetainerDescription" MaxLength="255" />
-		</div>
-	</Template>
 </RadzenDataGrid>
 
 @code {
