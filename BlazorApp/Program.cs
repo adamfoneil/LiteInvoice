@@ -37,6 +37,7 @@ builder.Services.AddAuthentication(options =>
 	.AddIdentityCookies();
 
 var connectionName = builder.Configuration.GetValue<string>("ConnectionName") ?? "DefaultConnection";
+builder.Services.Configure<DbConnection>(info => info.ConnectionName = connectionName);
 var connectionString = builder.Configuration.GetConnectionString(connectionName) ?? throw new InvalidOperationException($"Connection string '{connectionName}' not found.");
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Singleton);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

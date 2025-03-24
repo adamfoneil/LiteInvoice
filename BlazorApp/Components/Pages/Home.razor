@@ -1,7 +1,17 @@
 ﻿@page "/"
+@using Microsoft.Extensions.Options
+@inject IOptions<DbConnection> DbConnectionOption
 
 <PageTitle>Home</PageTitle>
 
 <h1>LiteInvoice</h1>
 
 <p>This is for creating invoices</p>
+
+<AuthorizeView>
+	<Authorized>
+		<div class="d-flex justify-content-center">
+			<p class="text-muted">DbConnection = @DbConnectionOption.Value.ConnectionName</p>
+		</div>
+	</Authorized>
+</AuthorizeView>
