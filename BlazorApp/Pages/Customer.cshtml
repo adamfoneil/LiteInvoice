@@ -25,7 +25,7 @@
 		{
 			<details>
 				<summary class="h3">@invYearGroup.Key</summary>
-				<table class="table ms-4">
+				<table class="table ms-4 table-striped">
 					<tr>
 						<th>Invoice #</th>
 						<th>Date</th>
@@ -36,11 +36,11 @@
 					@foreach (var inv in invYearGroup)
 					{
 						<tr>
-							<td><a href="/Invoice/@inv.HashId" target="_blank" class="btn btn-secondary">@inv.Number</a></td>
+							<td><a href="/Invoice/@inv.HashId" target="_blank" class="btn btn-secondary btn-sm">@inv.Number</a></td>
 							<td>@inv.Date.ToString("M/d/yy")</td>
 							<td class="text-end">@inv.AmountDue.ToString("c2")</td>
-							<td class="text-end"></td>
-							<td class="text-end"></td>
+							<td class="text-end">@Model.TotalPayments(inv.Id).ToString("c2")</td>
+							<td class="text-end">@Model.BalanceDue(inv).ToString("c2")</td>
 						</tr>
 					}
 				</table>				
