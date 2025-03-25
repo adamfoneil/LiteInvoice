@@ -35,7 +35,7 @@ public class CustomerModel(
 
 			Customer = await db.Customers
 				.Include(c => c.Business)
-				.Include(c => c.Projects)
+				.Include(c => c.Projects.Where(p => !p.IsTemplate))
 				.ThenInclude(p => p.Invoices)
 				.AsSplitQuery()
 				.SingleOrDefaultAsync(row => row.Id == customerId)
