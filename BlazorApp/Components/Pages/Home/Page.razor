@@ -1,6 +1,6 @@
 ﻿@page "/"
 @using Microsoft.Extensions.Options
-@inject IOptions<DbConnection> DbConnectionOption
+
 
 <PageTitle>Home</PageTitle>
 
@@ -10,8 +10,6 @@
 
 <AuthorizeView>
 	<Authorized>
-		<div class="d-flex justify-content-center">
-			<p class="text-muted">DbConnection = @DbConnectionOption.Value.ConnectionName</p>
-		</div>
+		<AppInfo />
 	</Authorized>
 </AuthorizeView>

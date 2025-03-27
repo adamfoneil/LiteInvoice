@@ -9,8 +9,13 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Radzen;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var defaultCulture = new CultureInfo("en-US");
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
