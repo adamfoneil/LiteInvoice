@@ -1,4 +1,5 @@
-﻿@page "/NextInvoice"
+﻿@page "/NextInvoice/{ProjectId:int}"
+@page "/NextInvoice"
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject ViewState View
 @inject Hashids Hashids
@@ -42,6 +43,8 @@
 	private Expenses? expensesGrid;
 
 	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	[Parameter] public int ProjectId { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{

@@ -1,0 +1,69 @@
+﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<ul>
+	@foreach (var projectId in projectIds)	
+	{
+		var expenses = expensesByProject[projectId];
+		var hours = hoursByProject[projectId];
+		var total = expenses.Concat(hours).Sum(row => row.Amount);
+		<li><a href="/NextInvoice/@projectId">@expenses.First().CustomerName - @expenses.First().ProjectName: @total.ToString("c2")</a></li>
+	}
+</ul>
+
+@code {
+	private int userId;
+	private int[] projectIds = [];
+	private ILookup<int, PendingCharge> expensesByProject = Enumerable.Empty<PendingCharge>().ToLookup(row => row.ProjectId);
+	private ILookup<int, PendingCharge> hoursByProject = Enumerable.Empty<PendingCharge>().ToLookup(row => row.ProjectId);
+
+	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		await Refresh();
+	}
+
+	private async Task Refresh()
+	{
+		userId = CurrentUser?.UserId ?? 0;
+		using var db = DbFactory.CreateDbContext();
+
+		var expenses = await db.Expenses
+			.Include(exp => exp.Project)
+			.ThenInclude(p => p.Customer)
+			.ThenInclude(c => c.Business)
+			.Where(exp => exp.Project.Customer.Business.UserId == userId)
+			.GroupBy(exp => exp.ProjectId)
+			.Select(exp => new PendingCharge
+			{
+				Type = "Expense",
+				CustomerId = exp.First().Project.CustomerId,
+				CustomerName = exp.First().Project.Customer.Name,
+				ProjectId = exp.Key,
+				ProjectName = exp.First().Project.Name,
+				Amount = exp.Sum(e => e.Amount)
+			})
+			.ToArrayAsync();
+
+		var hours = await db.Hours
+			.Include(hr => hr.Project)
+			.ThenInclude(p => p.Customer)
+			.ThenInclude(c => c.Business)
+			.Where(hr => hr.Project.Customer.Business.UserId == userId)
+			.GroupBy(exp => exp.ProjectId)
+			.Select(exp => new PendingCharge
+				{
+					Type = "Hours",
+					CustomerId = exp.First().Project.CustomerId,
+					CustomerName = exp.First().Project.Customer.Name,
+					ProjectId = exp.Key,
+					ProjectName = exp.First().Project.Name,
+					Amount = exp.Sum(e => e.Rate * e.Hours)
+				})
+			.ToArrayAsync();
+
+		projectIds = hours.Concat(expenses).Select(row => row.ProjectId).Distinct().ToArray();
+		expensesByProject = expenses.ToLookup(row => row.ProjectId);
+		hoursByProject = hours.ToLookup(row => row.ProjectId);
+	}
+}
