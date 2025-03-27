@@ -61,6 +61,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+	var dbFactory = app.Services.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
+	using var db = dbFactory.CreateDbContext();
+	db.Database.Migrate();
 	app.UseMigrationsEndPoint();
 }
 else
