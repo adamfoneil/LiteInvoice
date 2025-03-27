@@ -38,6 +38,21 @@
 		</RadzenDataGridColumn>
 		<GridControls TItem="Customer" Grid="grid" DeleteRow="DeleteCustomer" />
 	</Columns>
+	<Template>
+		<div class="edit-form">
+			<label>Address:</label>
+			<RadzenTextBox @bind-Value="context.Address" MaxLength="100" />
+
+			<label>City:</label>
+			<RadzenTextBox @bind-Value="context.City" MaxLength="100" />
+
+			<label>State:</label>
+			<RadzenTextBox @bind-Value="context.State" MaxLength="2" />
+
+			<label>ZIP:</label>
+			<RadzenTextBox @bind-Value="context.Zip" MaxLength="20" />
+		</div>
+	</Template>
 </RadzenDataGrid>
 
 @code {
