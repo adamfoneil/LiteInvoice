@@ -59,6 +59,20 @@
 		templateProjects = await db.Projects.Where(p => p.Customer.Business.UserId == userId && p.IsTemplate).ToArrayAsync();
 	}
 
+	protected override async Task OnParametersSetAsync()
+	{
+		if (projectId == 0 && ProjectId != 0)
+		{
+			if (projectsById.TryGetValue(ProjectId, out var project))
+			{
+				View.BusinessId = project.Customer.BusinessId;
+				customerId = project.CustomerId;
+				projectId = ProjectId;
+				await RecalcTotal();
+			}			
+		}
+	}
+
 	private async Task RecalcTotal()
 	{
 		using var db = DbFactory.CreateDbContext();
