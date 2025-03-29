@@ -1,7 +1,6 @@
 ﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
-@inject Hashids Hashids
 
-<RadzenDataGrid TItem="Invoice" Data="invoices">
+<RadzenDataGrid TItem="Invoice" Data="Items">
 	<Columns>
 		<RadzenDataGridColumn TItem="Invoice" Property="Number" Title="Invoice #" Width="140px" />
 		<RadzenDataGridColumn TItem="Invoice" Title="Customer">
@@ -15,66 +14,37 @@
 		<RadzenDataGridColumn TItem="Invoice">
 			<Template>
 				<a href="/Invoice/@context.HashId" target="_blank" class="me-3">View</a>
-				<RadzenButton Text="Delete" Click="() => Delete(context)" class="me-3" />
-				<RadzenButton Text="Payment..." Click="() => EnterPayment(context)" />
+				<RadzenButton Text="Payment..." Click="() => EnterPayment(context)" class="me-3" Visible="AllowPayments" />
+				<RadzenButton Icon="delete" Click="() => Delete(context)" class="me-3" ButtonStyle="ButtonStyle.Danger" Visible="AllowDelete" />
 			</Template>
 		</RadzenDataGridColumn>
 	</Columns>
 	<Template>
-		<ul>
-			@foreach (var pmt in context.Payments)
-			{
-				<li class="d-flex align-items-center">
-					<div class="me-3">@pmt.Amount.ToString("c2")</div>
-					<RadzenButton Click="() => DeletePayment(pmt)" Text="Delete" />
-				</li>
-			}
-		</ul>		
+		<Payments Items="@context.Payments" PaymentDeleted="DataChanged" />
 	</Template>
 </RadzenDataGrid>
 
 @code {
-	private int userId;
-	private Invoice[] invoices = [];
 	private Payment payment = new();
 
+	[Parameter] public IEnumerable<Invoice> Items { get; set; } = [];
+	[Parameter] public EventCallback DataChanged { get; set; }
+	[Parameter] public bool AllowPayments { get; set; }
+	[Parameter] public bool AllowDelete { get; set; }
 	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
-
-	protected override async Task OnInitializedAsync()
-	{
-		userId = CurrentUser?.UserId ?? 0;
-		await Refresh();
-	}
-
-	private async Task Refresh()
-	{		
-		using var db = DbFactory.CreateDbContext();
-		invoices = await db.Invoices
-			.Include(inv => inv.Project)
-			.ThenInclude(p => p.Customer)
-			.ThenInclude(c => c.Business)
-			.Include(inv => inv.Payments)
-			.Where(inv => 
-				inv.Project.Customer.Business.UserId == userId &&
-				inv.Payments.Sum(p => p.Amount) < inv.AmountDue)
-			.AsSplitQuery()			
-			.ToArrayAsync();		
-
-		foreach (var row in invoices) row.BalanceDue = row.AmountDue - row.Payments.Sum(p => p.Amount);
-	}
 
 	private async Task Delete(Invoice invoice)
 	{
 		var ok = await Dialogs.Confirm("This will delete the invoice");
-		if (!ok.HasValue || !ok.Value) return;	
+		if (!ok.HasValue || !ok.Value) return;
 
 		using var db = DbFactory.CreateDbContext();
 		await db.DeleteInvoiceAsync(invoice.Id);
-		await Refresh();
+		await DataChanged.InvokeAsync();
 	}
 
 	private async Task EnterPayment(Invoice invoice)
-	{		
+	{
 		var response = await Dialogs.OpenAsync("Enter Payment", (ds) =>
 			@<div>
 				<div class="edit-form">
@@ -94,11 +64,11 @@
 				<div class="d-flex justify-content-end mt-3">
 					<RadzenButton Text="OK" Click="() => Dialogs.Close(true)" class="me-2" />
 					<RadzenButton Text="Cancel" Click="() => Dialogs.Close(false)" ButtonStyle="ButtonStyle.Secondary" />
-				</div>				
+				</div>
 			</div>
 	);
 
-		if (response is null) return;		
+		if (response is null) return;
 
 		using var db = DbFactory.CreateDbContext();
 		db.CurrentUser = CurrentUser?.UserName;
@@ -107,15 +77,8 @@
 		payment.IsManual = true;
 		db.Payments.Add(payment);
 		await db.SaveChangesAsync();
-		await Refresh();
+		await DataChanged.InvokeAsync();
 		payment = new();
 	}
 
-	private async Task DeletePayment(Payment payment)
-	{
-		using var db = DbFactory.CreateDbContext();
-		db.Payments.Remove(payment);
-		await db.SaveChangesAsync();
-		await Refresh();
-	}
 }

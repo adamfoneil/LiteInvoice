@@ -1,18 +1,59 @@
 ﻿@page "/Dashboard"
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
 
 <h3>Receivable</h3>
 <p>Invoices awaiting payment</p>
-<Receivable />
+<InvoiceGrid Items="receivable" DataChanged="Refresh" AllowPayments="true" AllowDelete="true" />
 
 <h3 class="mt-4">Pending</h3>
 <p>Hours and expenses not yet invoiced</p>
 <Pending />
 
 <h3 class="mt-4">Recent</h3>
-
-<h3 class="mt-4">Stats</h3>
-
+<p>Invoices recently paid</p>
+<InvoiceGrid Items="recent" DataChanged="Refresh" />
 
 @code {
+	private int userId;
+	private Invoice[] receivable = [];
+	private Invoice[] recent = [];
+
+	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		userId = CurrentUser?.UserId ?? 0;
+		await Refresh();
+	}
+
+	private async Task Refresh()
+	{
+		using var db = DbFactory.CreateDbContext();
+
+		receivable = await db.Invoices
+			.Include(inv => inv.Project)
+			.ThenInclude(p => p.Customer)
+			.ThenInclude(c => c.Business)
+			.Include(inv => inv.Payments)
+			.Where(inv =>
+				inv.Project.Customer.Business.UserId == userId &&
+				inv.Payments.Sum(p => p.Amount) < inv.AmountDue)
+			.AsSplitQuery()
+			.ToArrayAsync();
+
+		foreach (var row in receivable) row.BalanceDue = row.AmountDue - row.Payments.Sum(p => p.Amount);
+
+		recent = await db.Invoices
+			.Include(inv => inv.Project)
+			.ThenInclude(p => p.Customer)
+			.ThenInclude(c => c.Business)
+			.Include(inv => inv.Payments)
+			.Where(inv =>
+				inv.Project.Customer.Business.UserId == userId &&
+				inv.Payments.Sum(p => p.Amount) == inv.AmountDue)
+			.OrderByDescending(inv => inv.Date)
+			.Take(10)
+			.ToArrayAsync();
+	}
 
 }

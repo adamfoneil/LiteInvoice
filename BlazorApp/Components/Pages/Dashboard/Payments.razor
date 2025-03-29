@@ -1,0 +1,35 @@
+﻿@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+@if (Items.Any())
+{
+	<div>Payments</div>
+	<ul>
+		@foreach (var pmt in Items)
+		{
+			<li class="d-flex align-items-center">
+				<div class="me-3">@pmt.Data</div>
+				<div class="me-3">@pmt.Amount.ToString("c2")</div>
+				<RadzenButton Click="() => DeletePayment(pmt)" Icon="delete" ButtonStyle="ButtonStyle.Danger" />
+			</li>
+		}
+	</ul>	
+}
+
+@code {
+	[Parameter]
+	public IEnumerable<Payment> Items { get; set; } = [];
+
+	[Parameter]
+	public EventCallback PaymentDeleted { get; set; }
+
+	private async Task DeletePayment(Payment payment)
+	{
+		var ok = await Dialogs.Confirm("This will delete the payment");
+		if (!ok.HasValue || !ok.Value) return;
+
+		using var db = DbFactory.CreateDbContext();
+		db.Payments.Remove(payment);
+		await db.SaveChangesAsync();
+		await PaymentDeleted.InvokeAsync();
+	}
+}
