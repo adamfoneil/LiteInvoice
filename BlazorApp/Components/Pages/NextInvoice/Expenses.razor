@@ -42,8 +42,7 @@
 	private RadzenDataGrid<ExpenseEntry>? grid;
 	private ExpenseEntry[] expenses = [];
 	private decimal totalExpenses;
-
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+	private ApplicationUser user = new();
 
 	[Parameter]
 	public int ProjectId { get; set; }
@@ -52,6 +51,11 @@
 	public EventCallback Updated { get; set; }
 
 	public decimal TotalExpenses => totalExpenses;
+
+	protected override async Task OnInitializedAsync()
+	{
+		user = await CurrentUser.GetCurrentUserAsync();
+	}
 
 	protected override async Task OnParametersSetAsync()
 	{
@@ -74,7 +78,7 @@
 	private async Task Save(ExpenseEntry row)
 	{
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 		db.Expenses.Update(row);
 		await db.SaveChangesAsync();
 		await Updated.InvokeAsync();
@@ -84,7 +88,7 @@
 	private async Task Delete(ExpenseEntry row)
 	{
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 		db.Expenses.Remove(row);
 		await db.SaveChangesAsync();
 		await Updated.InvokeAsync();

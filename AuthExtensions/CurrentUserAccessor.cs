@@ -9,14 +9,14 @@ public class CurrentUserAccessor<TDbContext, TUser>(
 	AuthenticationStateProvider authStateProvider,
 	IDbContextFactory<TDbContext> dbFactory)
 	where TDbContext : IdentityDbContext<TUser>
-	where TUser : IdentityUser
+	where TUser : IdentityUser, new()
 {
 	private readonly AuthenticationStateProvider _authState = authStateProvider;
 	private readonly IDbContextFactory<TDbContext> _dbFactory = dbFactory;
 
 	private TUser? _currentUser;
 
-	public async Task<TUser?> GetCurrentUserAsync()
+	public async Task<TUser> GetCurrentUserAsync()
 	{
 		if (_currentUser != null)
 		{
@@ -32,6 +32,6 @@ public class CurrentUserAccessor<TDbContext, TUser>(
 			_currentUser = await db.Users.FirstOrDefaultAsync(u => u.UserName == user.Identity.Name);
 		}
 
-		return _currentUser;
+		return _currentUser ?? new();
 	}
 }

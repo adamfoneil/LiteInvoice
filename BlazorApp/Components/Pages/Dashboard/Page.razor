@@ -14,15 +14,13 @@
 <InvoiceGrid Items="recent" DataChanged="Refresh" />
 
 @code {
-	private int userId;
+	private ApplicationUser user = new();	
 	private Invoice[] receivable = [];
-	private Invoice[] recent = [];
-
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+	private Invoice[] recent = [];	
 
 	protected override async Task OnInitializedAsync()
 	{
-		userId = CurrentUser?.UserId ?? 0;
+		user = await CurrentUser.GetCurrentUserAsync();		
 		await Refresh();
 	}
 
@@ -36,7 +34,7 @@
 			.ThenInclude(c => c.Business)
 			.Include(inv => inv.Payments)
 			.Where(inv =>
-				inv.Project.Customer.Business.UserId == userId &&
+				inv.Project.Customer.Business.UserId == user.UserId &&
 				inv.Payments.Sum(p => p.Amount) < inv.AmountDue)
 			.AsSplitQuery()
 			.ToArrayAsync();
@@ -49,11 +47,10 @@
 			.ThenInclude(c => c.Business)
 			.Include(inv => inv.Payments)
 			.Where(inv =>
-				inv.Project.Customer.Business.UserId == userId &&
+				inv.Project.Customer.Business.UserId == user.UserId &&
 				inv.Payments.Sum(p => p.Amount) == inv.AmountDue)
 			.OrderByDescending(inv => inv.Date)
 			.Take(10)
 			.ToArrayAsync();
 	}
-
 }

@@ -24,6 +24,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient();
 builder.Services.AddRadzenComponents();
 builder.Services.AddRazorPages();
+builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();
 
 builder.Services.AddSingleton(sp => new Hashids(
 	builder.Configuration["Hashids:Salt"], 

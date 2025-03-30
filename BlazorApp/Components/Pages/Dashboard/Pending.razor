@@ -11,28 +11,26 @@
 </ul>
 
 @code {
-	private int userId;
+	private ApplicationUser user = new();
 	private int[] projectIds = [];
 	private ILookup<int, PendingCharge> expensesByProject = Enumerable.Empty<PendingCharge>().ToLookup(row => row.ProjectId);
-	private ILookup<int, PendingCharge> hoursByProject = Enumerable.Empty<PendingCharge>().ToLookup(row => row.ProjectId);
-
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+	private ILookup<int, PendingCharge> hoursByProject = Enumerable.Empty<PendingCharge>().ToLookup(row => row.ProjectId);	
 
 	protected override async Task OnInitializedAsync()
 	{
+		user = await CurrentUser.GetCurrentUserAsync();
 		await Refresh();
 	}
 
 	private async Task Refresh()
-	{
-		userId = CurrentUser?.UserId ?? 0;
+	{		
 		using var db = DbFactory.CreateDbContext();
 
 		var expenses = await db.Expenses
 			.Include(exp => exp.Project)
 			.ThenInclude(p => p.Customer)
 			.ThenInclude(c => c.Business)
-			.Where(exp => exp.Project.Customer.Business.UserId == userId && !exp.Project.IsTemplate)
+			.Where(exp => exp.Project.Customer.Business.UserId == user.UserId && !exp.Project.IsTemplate)
 			.GroupBy(exp => exp.ProjectId)
 			.Select(exp => new PendingCharge
 			{
@@ -49,7 +47,7 @@
 			.Include(hr => hr.Project)
 			.ThenInclude(p => p.Customer)
 			.ThenInclude(c => c.Business)
-			.Where(hr => hr.Project.Customer.Business.UserId == userId && !hr.Project.IsTemplate)
+			.Where(hr => hr.Project.Customer.Business.UserId == user.UserId && !hr.Project.IsTemplate)
 			.GroupBy(exp => exp.ProjectId)
 			.Select(exp => new PendingCharge
 			{

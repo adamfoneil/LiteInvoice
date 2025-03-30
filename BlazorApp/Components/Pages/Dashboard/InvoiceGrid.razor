@@ -26,12 +26,17 @@
 
 @code {
 	private Payment payment = new();
+	private ApplicationUser user = new();
 
 	[Parameter] public IEnumerable<Invoice> Items { get; set; } = [];
 	[Parameter] public EventCallback DataChanged { get; set; }
 	[Parameter] public bool AllowPayments { get; set; }
-	[Parameter] public bool AllowDelete { get; set; }
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+	[Parameter] public bool AllowDelete { get; set; }	
+
+	protected override async Task OnInitializedAsync()
+	{
+		user = await CurrentUser.GetCurrentUserAsync();
+	}
 
 	private async Task Delete(Invoice invoice)
 	{
@@ -71,7 +76,7 @@
 		if (response is null) return;
 
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 
 		payment.InvoiceId = invoice.Id;
 		payment.IsManual = true;

@@ -42,6 +42,7 @@
 </RadzenDataGrid>
 
 @code {
+	private ApplicationUser user = new();
 	private Business[] businesses = [];
 	private int customerId;
 	private ILookup<int, Customer> customersByBusiness = Enumerable.Empty<Customer>().ToLookup(c => c.BusinessId);
@@ -49,12 +50,9 @@
 	private RadzenDataGrid<Project>? grid;
 	private Project[] projects = [];
 
-	[CascadingParameter]
-	public ApplicationUser? CurrentUser { get; set; }
-
 	protected override async Task OnInitializedAsync()
 	{
-		userId = CurrentUser?.UserId ?? 0;
+		userId = user.UserId;
 
 		using var db = DbFactory.CreateDbContext();
 		businesses = await db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
@@ -73,7 +71,7 @@
 	private async Task Save(Project row)
 	{
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 		db.Projects.Update(row);
 		await db.SaveChangesAsync();
 	}

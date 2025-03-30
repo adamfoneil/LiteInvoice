@@ -68,6 +68,7 @@
 </RadzenDataGrid>
 
 @code {
+	private ApplicationUser user = new();
 	private bool manageCustomers;
 	private RadzenDataGrid<PaymentMethod>? grid;
 	private Business[] businesses = [];	
@@ -75,17 +76,15 @@
 	private int customerId;
 	private ILookup<int, Customer> customersByBusiness = Enumerable.Empty<Customer>().ToLookup(c => c.BusinessId);
 
-	[CascadingParameter]
-	public ApplicationUser? CurrentUser { get; set; }
-
 	protected override void OnParametersSet()
 	{
-		View.CurrentUser ??= CurrentUser;
+		View.CurrentUser ??= user;
 	}
 
 	protected override async Task OnInitializedAsync()
 	{	
-		View.CurrentUser ??= CurrentUser;
+		user = await CurrentUser.GetCurrentUserAsync();
+		View.CurrentUser ??= user;
 
 		using var db = DbFactory.CreateDbContext();
 		businesses = await db.Businesses.Where(b => b.UserId == View.UserId).ToArrayAsync();
@@ -122,7 +121,7 @@
 	private async Task Save(PaymentMethod row)
 	{
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 		db.PaymentMethods.Update(row);
 		await db.SaveChangesAsync();
 	}
@@ -137,7 +136,7 @@
 	private async Task ToggleEnabled(PaymentMethod row)
 	{
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 
 		var pmCustomer = await db.PaymentMethodCustomers
 			.SingleOrDefaultAsync(pmc => pmc.CustomerId == customerId && pmc.PaymentMethodId == row.Id) ?? 

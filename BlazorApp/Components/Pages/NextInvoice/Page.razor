@@ -41,14 +41,13 @@
 	private Project[] templateProjects = [];
 	private Hours? hoursGrid;
 	private Expenses? expensesGrid;
-
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+	private ApplicationUser user = new();
 
 	[Parameter] public int ProjectId { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{
-		userId = CurrentUser?.UserId ?? 0;
+		user = await CurrentUser.GetCurrentUserAsync();		
 
 		using var db = DbFactory.CreateDbContext();
 		businesses = await db.Businesses.Where(row => row.UserId == userId).ToArrayAsync();

@@ -14,13 +14,13 @@
 </ul>
 
 @code {
-	private IEnumerable<SetupChecklist.Item> todoItems = [];
-
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
+	private ApplicationUser user = new();
+	private IEnumerable<SetupChecklist.Item> todoItems = [];	
 
 	protected override async Task OnInitializedAsync()
 	{
+		user = await CurrentUser.GetCurrentUserAsync();
 		using var db = DbFactory.CreateDbContext();
-		todoItems = await new SetupChecklist().GetIncompleteItemsAsync(db, CurrentUser?.UserId ?? 0);
+		todoItems = await new SetupChecklist().GetIncompleteItemsAsync(db, user.UserId);
 	}
 }

@@ -43,14 +43,14 @@
 
 
 @code {
+	private ApplicationUser user = new();
 	private Business[] businesses = [];
 	private Dictionary<int, Business> businessesById = [];
 	private Business business = new();
 
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
-
 	protected override async Task OnInitializedAsync()
 	{
+		user = await CurrentUser.GetCurrentUserAsync();
 		using var db = DbFactory.CreateDbContext();
 
 		await RefreshBusinesses(db);
@@ -62,9 +62,9 @@
 
 	private async Task Save()
 	{
-		business.UserId = CurrentUser?.UserId ?? 0;
+		business.UserId = user.UserId;
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 		db.Businesses.Update(business);
 		await db.SaveChangesAsync();
 
@@ -85,11 +85,9 @@
 
 	private async Task RefreshBusinesses(ApplicationDbContext db)
 	{
-		var userId = CurrentUser?.UserId ?? 0;
-
 		businesses = await db
 			.Businesses
-			.Where(b => b.UserId == userId)
+			.Where(b => b.UserId == user.UserId)
 			.ToArrayAsync();
 
 		businessesById = businesses.ToDictionary(b => b.Id);

@@ -56,21 +56,19 @@
 </RadzenDataGrid>
 
 @code {
+	private ApplicationUser user = new();
 	private Business[] businesses = [];
 	private Customer[] customers = [];
 	private RadzenDataGrid<Customer>? grid;
 
-	[CascadingParameter] public ApplicationUser? CurrentUser { get; set; }
-
 	protected override async Task OnInitializedAsync()
 	{
+		user = await CurrentUser.GetCurrentUserAsync();
 		using var db = DbFactory.CreateDbContext();
-
-		var userId = CurrentUser?.UserId ?? 0;
-
+		
 		businesses = await db
 			.Businesses
-			.Where(b => b.UserId == userId)
+			.Where(b => b.UserId == user.UserId)
 			.ToArrayAsync();
 
 		View.Initialize(businesses);
@@ -91,7 +89,7 @@
 	private async Task SaveCustomer(Customer row)
 	{
 		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = CurrentUser?.UserName;
+		db.CurrentUser = user.UserName;
 		db.Customers.Update(row);
 		await db.SaveChangesAsync();
 	}

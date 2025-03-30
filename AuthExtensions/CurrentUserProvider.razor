@@ -1,7 +1,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 @typeparam TDbContext where TDbContext : IdentityDbContext<TUser>
-@typeparam TUser where TUser : IdentityUser
+@typeparam TUser where TUser : IdentityUser, new()
 @inject CurrentUserAccessor<TDbContext, TUser> CurrentUserAccessor
 
 <CascadingValue Value="CurrentUser">
