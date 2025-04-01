@@ -2,6 +2,7 @@ using AuthExtensions;
 using BlazorApp;
 using BlazorApp.Components;
 using BlazorApp.Components.Account;
+using Coravel;
 using CoreNotify.MailerSend.Extensions;
 using HashidsNet;
 using LiteInvoice.Database;
@@ -21,11 +22,13 @@ CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents();
 
+builder.Services.AddScheduler();
 builder.Services.AddHttpClient();
 builder.Services.AddRadzenComponents();
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();
 
+builder.Services.AddSingleton<ScheduledInvoices>();
 builder.Services.AddSingleton(sp => new Hashids(
 	builder.Configuration["Hashids:Salt"], 
 	minHashLength: int.TryParse(builder.Configuration["Hashids:MinLength"], out var value) ? value : 6));
@@ -58,6 +61,11 @@ builder.Services.AddCoreNotifyGenericEmailSender<ApplicationUser>("liteinvoice",
 builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();
 
 var app = builder.Build();
+
+app.Services.UseScheduler(schedule =>
+{
+	schedule.Schedule<ScheduledInvoices>().DailyAtHour(10);
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

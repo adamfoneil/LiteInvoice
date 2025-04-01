@@ -26,6 +26,8 @@ public class Project : BaseEntity
 	public ICollection<Invoice> Invoices { get; set; } = [];
 	public ICollection<HoursEntry> Hours { get; set; } = [];
 	public ICollection<ExpenseEntry> Expenses { get; set; } = [];	
+	public ICollection<ScheduledInvoice> ScheduledInvoices { get; set; } = [];
+	public ICollection<ScheduledInvoice> ScheduledTemplateInvoices { get; set; } = [];
 }
 
 public class ProjectConfiguration : IEntityTypeConfiguration<Project>
