@@ -21,3 +21,7 @@ Substitute your proper `TDbContext` and `TUser` types.
 public ApplicationUser? CurrentUser { get; set; }
 ```
 Make it nullable and check for nulls when accessing it, but it will be set to the current logged in user automatically without additional database queries.
+
+---
+
+However, there is an issue where manually refreshing the page (press F5) causes the `CurrentUser` cascading property to lose its value. See [#4](https://github.com/adamfoneil/LiteInvoice/issues/4).
