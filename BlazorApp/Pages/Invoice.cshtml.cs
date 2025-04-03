@@ -21,10 +21,12 @@ public class InvoiceModel(
 	public string InvoiceId { get; set; } = string.Empty;
 
 	public Invoice Invoice { get; private set; } = new();
+	public decimal BalanceDue { get; private set; }
 	public InvoiceData Data { get; private set; } = new();
 	public PaymentMethod[] PaymentMethods { get; private set; } = [];
 	public decimal Total => Data.Hours.Sum(row => row.Hours * row.Rate) + Data.Expenses.Sum(row => row.Amount);
 	public string CustomerId => _hashids.Encode(Invoice.Project.CustomerId);
+	public Payment[] Payments { get; private set; } = [];	
 
 	public async Task<IActionResult> OnGetAsync()
 	{
@@ -60,6 +62,8 @@ public class InvoiceModel(
 			paymentMethods.AddRange(customerPaymentMethods.Where(pm => !paymentMethods.Any(gpm => gpm.Id == pm.Id)));
 			PaymentMethods = [.. paymentMethods];
 
+			Payments = await db.Payments.Where(row => row.InvoiceId == Invoice.Id).ToArrayAsync();
+			BalanceDue = Invoice.AmountDue - Payments.Sum(p => p.Amount);			
 			return Page();
 		}
 		catch (Exception exc)

@@ -11,7 +11,7 @@
 	<div>
 		<h1>Invoice @Model.Invoice.Number</h1>
 		<div>from @biz.Name</div>
-		@Model.Invoice.Date.ToString("M/d/yy") | <strong>@Model.Total.ToString("c2")</strong>
+		@Model.Invoice.Date.ToString("M/d/yy") | <strong>@Model.BalanceDue.ToString("c2")</strong>
 	</div>	
 
 	<div class="me-4">
@@ -54,9 +54,36 @@
 			</tr>
 		}
 		<tr>
-			<td colspan="3"></td>
+			<td colspan="3" class="text-end">Subtotal:</td>
 			<td class="text-end fw-bold border-top">@Model.Total.ToString("c2")</td>
 		</tr>
+		@if (Model.Payments.Any())
+		{
+			<tr>
+				<td colspan="4" class="fw-bold">Payments:</td>
+			</tr>
+			foreach (var p in Model.Payments)
+			{
+				<tr>
+					<td>@p.CreatedAt.ToString("M/d/yy")</td>
+					<td colspan="2">@p.Data</td>
+					<td class="text-end">@p.Amount.ToString("c2")</td>
+				</tr>
+			}
+			if (Model.BalanceDue > 0)
+			{
+				<tr>
+					<td colspan="3" class="text-end">Balance Due:</td>
+					<td class="text-end fw-bold border-top">@Model.BalanceDue.ToString("c2")</td>
+				</tr>
+			}
+			else
+			{
+				<tr>
+					<td colspan="4" class="text-success fw-bold border-top text-end">Paid in Full</td>
+				</tr>
+			}
+		}
 	</table>
 </section>
 
@@ -93,7 +120,6 @@
 		</div>
 	</section>
 }
-
 
 <section class="mt-4">
 	<h4 class="text-center">All Invoices</h4>

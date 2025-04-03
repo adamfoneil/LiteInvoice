@@ -48,7 +48,7 @@
 			.Include(inv => inv.Payments)
 			.Where(inv =>
 				inv.Project.Customer.Business.UserId == user.UserId &&
-				inv.Payments.Sum(p => p.Amount) == inv.AmountDue)
+				inv.Payments.Sum(p => p.Amount) >= inv.AmountDue)
 			.OrderByDescending(inv => inv.Date)
 			.Take(10)
 			.ToArrayAsync();
