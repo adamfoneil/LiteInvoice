@@ -3,7 +3,7 @@
 @inject ViewState View
 
 <h3>Customers</h3>
-<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="SelectBusiness" Placeholder="business" />
+<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="Refresh" Placeholder="business" />
 
 <GridInsertButton TItem="Customer" Grid="grid" OnCreateItem="() => new() { BusinessId = View.BusinessId }" />
 <RadzenDataGrid TItem="Customer" Data="customers" @ref="grid" RowCreate="SaveCustomer" RowUpdate="SaveCustomer">
@@ -65,7 +65,7 @@
 	{
 		user = await CurrentUser.GetCurrentUserAsync();
 		using var db = DbFactory.CreateDbContext();
-		
+
 		businesses = await db
 			.Businesses
 			.Where(b => b.UserId == user.UserId)
@@ -73,10 +73,10 @@
 
 		View.Initialize(businesses);
 
-		await SelectBusiness();
+		await Refresh();
 	}
 
-	private async Task SelectBusiness()
+	private async Task Refresh()
 	{
 		using var db = DbFactory.CreateDbContext();
 
@@ -99,5 +99,6 @@
 		using var db = DbFactory.CreateDbContext();
 		db.Customers.Remove(row);
 		await db.SaveChangesAsync();
+		await Refresh();
 	}
 }
