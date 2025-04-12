@@ -26,7 +26,6 @@ builder.Services.AddScheduler();
 builder.Services.AddHttpClient();
 builder.Services.AddRadzenComponents();
 builder.Services.AddRazorPages();
-builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();
 
 builder.Services.AddSingleton<ScheduledInvoices>();
 builder.Services.AddSingleton(sp => new Hashids(
@@ -57,8 +56,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 	.AddDefaultTokenProviders();
 
 builder.Services.AddCoreNotifyGenericEmailSender<ApplicationUser>("liteinvoice", builder.Configuration);
-
-builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();
+builder.Services.AddCurrentUserInfo<ApplicationUser>();
 
 var app = builder.Build();
 

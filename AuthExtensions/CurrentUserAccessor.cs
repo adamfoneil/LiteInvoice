@@ -1,22 +1,17 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 
 namespace AuthExtensions;
 
-public class CurrentUserAccessor<TDbContext, TUser>(
-	AuthenticationStateProvider authStateProvider,
-	IDbContextFactory<TDbContext> dbFactory)
-	where TDbContext : IdentityDbContext<TUser>
-	where TUser : IdentityUser, new()
+public class CurrentUserAccessor<TUser>(
+	AuthenticationStateProvider authStateProvider)	
+	where TUser : IdentityUser, IClaimData, new()
 {
-	private readonly AuthenticationStateProvider _authState = authStateProvider;
-	private readonly IDbContextFactory<TDbContext> _dbFactory = dbFactory;
+	private readonly AuthenticationStateProvider _authState = authStateProvider;	
 
 	private TUser? _currentUser;
 
-	public async Task<TUser> GetCurrentUserAsync()
+	public async Task<TUser> GetAsync()
 	{
 		if (_currentUser != null)
 		{
@@ -28,8 +23,8 @@ public class CurrentUserAccessor<TDbContext, TUser>(
 
 		if (user.Identity is not null && user.Identity.IsAuthenticated)
 		{
-			using var db = _dbFactory.CreateDbContext();
-			_currentUser = await db.Users.FirstOrDefaultAsync(u => u.UserName == user.Identity.Name);
+			_currentUser = new();
+			_currentUser.FromClaims(user.Claims);
 		}
 
 		return _currentUser ?? new();

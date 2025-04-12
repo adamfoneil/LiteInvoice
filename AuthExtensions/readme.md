@@ -1,5 +1,7 @@
 This is a set of objects to make it easy to get the current `IdentityUser` in your Blazor apps without additional database queries.
 
+1. 
+
 1. Add the [CurrentUserAccessor](https://github.com/adamfoneil/LiteInvoice/blob/master/AuthExtensions/CurrentUserAccessor.cs) to your service collection in startup:
 ```csharp
 builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();

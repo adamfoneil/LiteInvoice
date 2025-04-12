@@ -72,7 +72,7 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		user = await CurrentUser.GetCurrentUserAsync();
+		user = await CurrentUser.GetAsync();
 	}
 
 	protected override async Task OnParametersSetAsync()

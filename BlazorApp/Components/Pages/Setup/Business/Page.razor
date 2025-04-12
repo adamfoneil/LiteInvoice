@@ -50,7 +50,7 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		user = await CurrentUser.GetCurrentUserAsync();
+		user = await CurrentUser.GetAsync();
 		using var db = DbFactory.CreateDbContext();
 
 		await RefreshBusinesses(db);
