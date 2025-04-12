@@ -11,7 +11,10 @@ public static class Extensions
 	public static void AddCurrentUserInfo<TUser>(this IServiceCollection services)
 		where TUser : IdentityUser, IClaimData, new()
 	{
+		// causes your custom claims to be added to the ClaimsPrincipal when users login
 		services.AddScoped<IUserClaimsPrincipalFactory<TUser>, CustomClaimsPrincipalFactory<TUser>>();
+
+		// provides strongly-typed access to the current user info in your pages/components
 		services.AddScoped<CurrentUserAccessor<TUser>>();
 	}
 }

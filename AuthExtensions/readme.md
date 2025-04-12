@@ -1,29 +1,32 @@
 This is a set of objects to make it easy to get the current `IdentityUser` in your Blazor apps without additional database queries.
 
-1. 
+1. Implement [IClaimData](./IClaimData.cs) on your `TUser IdentityUser` type. This defines a conversion between your `IdentityUser` type and a set of claims.
 
-1. Add the [CurrentUserAccessor](https://github.com/adamfoneil/LiteInvoice/blob/master/AuthExtensions/CurrentUserAccessor.cs) to your service collection in startup:
+2. In your app startup, call
+
 ```csharp
-builder.Services.AddScoped<CurrentUserAccessor<ApplicationDbContext, ApplicationUser>>();
+builder.Services.AddCurrentUserInfo<ApplicationUser>();
 ```
-where `ApplicationDbContext` is your db context class, and `ApplicationUser` is your `IdentityUser` type.
 
-2. In `Routes.razor` surround the existing markup with the [CurrentUserProvider](https://github.com/adamfoneil/LiteInvoice/blob/master/AuthExtensions/CurrentUserProvider.razor)
+where `ApplicationUser` is your `IdentityUser` type.
+
+3. In your top level `_Imports.razor` component, add this line
+
 ```csharp
-@using AuthExtensions
-<CurrentUserProvider TDbContext="ApplicationDbContext" TUser="ApplicationUser">
-    .... markup omitted for clarity
-</CurrentUserProvider>
+@inject CurrentUserAccessor<ApplicationUser> CurrentUser
 ```
-Substitute your proper `TDbContext` and `TUser` types.
 
-3. In components where you need to the current `TUser` add a cascading parameter:
+Again, substitute your proper `ApplicationUser` type.
+
+Now you can access the current user in any component like this:
+
 ```csharp
-[CascadingParameter]
-public ApplicationUser? CurrentUser { get; set; }
+@code {
+	private ApplicationUser user = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		user = await CurrentUser.GetAsync();
+	}
+}
 ```
-Make it nullable and check for nulls when accessing it, but it will be set to the current logged in user automatically without additional database queries.
-
----
-
-However, there is an issue where manually refreshing the page (press F5) causes the `CurrentUser` cascading property to lose its value. See [#4](https://github.com/adamfoneil/LiteInvoice/issues/4).
