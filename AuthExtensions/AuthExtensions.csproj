@@ -7,13 +7,15 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>AO.Blazor.CurrentUser</PackageId>
     <Title>Blazor Current User </Title>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Adam O'Neil</Authors>
     <Copyright>Copyright (c) 2025 Adam O'Neil</Copyright>
     <PackageProjectUrl>https://github.com/adamfoneil/LiteInvoice/tree/master/AuthExtensions</PackageProjectUrl>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/adamfoneil/LiteInvoice</RepositoryUrl>
     <PackageTags>blazor-server; auth</PackageTags>
+    <Company>Adam O'Neil</Company>
+    <Description>Stong-typed access to your TUser class in Blazor Server and ASP.NET Identity</Description>
   </PropertyGroup>
 
   <ItemGroup>
