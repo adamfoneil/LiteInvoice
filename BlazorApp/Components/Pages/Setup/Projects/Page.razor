@@ -45,18 +45,17 @@
 	private ApplicationUser user = new();
 	private Business[] businesses = [];
 	private int customerId;
-	private ILookup<int, Customer> customersByBusiness = Enumerable.Empty<Customer>().ToLookup(c => c.BusinessId);
-	private int userId;
+	private ILookup<int, Customer> customersByBusiness = Enumerable.Empty<Customer>().ToLookup(c => c.BusinessId);	
 	private RadzenDataGrid<Project>? grid;
 	private Project[] projects = [];
 
 	protected override async Task OnInitializedAsync()
 	{
-		userId = user.UserId;
+		user = await CurrentUser.GetAsync();
 
 		using var db = DbFactory.CreateDbContext();
-		businesses = await db.Businesses.Where(b => b.UserId == userId).ToArrayAsync();
-			var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == userId).ToArrayAsync();
+		businesses = await db.Businesses.Where(b => b.UserId == user.UserId).ToArrayAsync();
+			var customers = await db.Customers.Include(c => c.Business).Where(c => c.Business.UserId == user.UserId).ToArrayAsync();
 			customersByBusiness = customers.ToLookup(row => row.BusinessId);
 
 		View.Initialize(businesses);
