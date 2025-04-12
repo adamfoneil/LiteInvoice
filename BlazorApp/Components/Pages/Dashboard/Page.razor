@@ -14,13 +14,13 @@
 <InvoiceGrid Items="recent" DataChanged="Refresh" />
 
 @code {
-	private ApplicationUser user = new();	
+	private ApplicationUser user = new();
 	private Invoice[] receivable = [];
 	private Invoice[] recent = [];	
 
 	protected override async Task OnInitializedAsync()
 	{
-		user = await CurrentUser.GetAsync();		
+		user = await CurrentUser.GetAsync();
 		await Refresh();
 	}
 
