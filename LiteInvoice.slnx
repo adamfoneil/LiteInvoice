@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="AuthExtensions/AuthExtensions.csproj" />
+  <Project Path="BlazorApp/BlazorApp.csproj" />
+  <Project Path="LiteInvoice.Database/LiteInvoice.Database.csproj" />
+</Solution>
