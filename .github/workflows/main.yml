@@ -11,6 +11,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set version tag
+      uses: adamfoneil/branch-tagger@master
+      with:
+        branch: ${{ github.ref_name }}
+        tracker: next-version.json
+
     - name: Set up .NET
       uses: actions/setup-dotnet@v2
       with:
