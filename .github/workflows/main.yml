@@ -12,7 +12,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set version tag
-      uses: adamfoneil/branch-tagger@master
+      uses: adamfoneil/branch-tagger@main
       with:
         branch: ${{ github.ref_name }}
         tracker: next-version.json
