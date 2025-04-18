@@ -15,7 +15,7 @@ jobs:
       uses: adamfoneil/branch-tagger@main
       with:
         branch: ${{ github.ref_name }}
-        tracker: next-version.json
+        filename: next-version.json
 
     - name: Set up .NET
       uses: actions/setup-dotnet@v2
