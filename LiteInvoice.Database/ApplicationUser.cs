@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using AuthExtensions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using AuthExtensions;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Security.Claims;
 
 namespace LiteInvoice.Database;
