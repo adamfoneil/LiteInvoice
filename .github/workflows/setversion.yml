@@ -17,3 +17,8 @@ jobs:
 
     - name: Set version tag
       uses: adamfoneil/set-version@main
+
+    - name: Debug outputs
+      run: |
+        echo "TAG: ${{ steps.set-version.outputs.tag }}"
+        echo "SKIP: ${{ steps.set-version.outputs.skip }}"
