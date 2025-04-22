@@ -16,6 +16,7 @@ jobs:
         fetch-depth: 2
 
     - name: Set version tag
+      id: set-version
       uses: adamfoneil/set-version@main
 
     - name: Debug outputs
