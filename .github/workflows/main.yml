@@ -16,11 +16,8 @@ jobs:
         fetch-depth: 2
 
     - name: Set version tag
-      uses: adamfoneil/branch-tagger@main
-      with:
-        branch: ${{ github.ref_name }}
-        filename: next-version.json
-
+      uses: adamfoneil/set-version@main
+      
     - name: Set up .NET
       uses: actions/setup-dotnet@v2
       with:
