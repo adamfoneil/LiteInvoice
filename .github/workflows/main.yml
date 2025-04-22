@@ -46,5 +46,6 @@ jobs:
         echo "WORKDIR /app" >> Dockerfile
         echo "COPY . ." >> Dockerfile
         echo "ENTRYPOINT [\"dotnet\", \"BlazorApp.dll\"]" >> Dockerfile
-        docker build -t ghcr.io/${{ github.repository_owner }}/liteinvoice:latest .
-        docker push ghcr.io/${{ github.repository_owner }}/liteinvoice:latest
+        TAG=${{ steps.set-version.outputs.tag }}
+        docker build -t ghcr.io/${{ github.repository_owner }}/liteinvoice:$TAG .
+        docker push ghcr.io/${{ github.repository_owner }}/liteinvoice:$TAG
