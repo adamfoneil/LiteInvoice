@@ -14,8 +14,6 @@ using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// here is a comment with feeling
-
 var defaultCulture = new CultureInfo("en-US");
 CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
 CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
