@@ -16,8 +16,9 @@ jobs:
         fetch-depth: 2
 
     - name: Set version tag
+      id: set-version
       uses: adamfoneil/set-version@main
-      
+            
     - name: Set up .NET
       uses: actions/setup-dotnet@v2
       with:
@@ -47,5 +48,8 @@ jobs:
         echo "COPY . ." >> Dockerfile
         echo "ENTRYPOINT [\"dotnet\", \"BlazorApp.dll\"]" >> Dockerfile
         TAG=${{ steps.set-version.outputs.tag }}
-        docker build -t ghcr.io/${{ github.repository_owner }}/liteinvoice:$TAG .
+        docker build 
+          -t ghcr.io/${{ github.repository_owner }}/liteinvoice:$TAG .
+          -t ghcr.io/${{ github.repository_owner }}/liteinvoice:latest .
         docker push ghcr.io/${{ github.repository_owner }}/liteinvoice:$TAG
+        docker push ghcr.io/${{ github.repository_owner }}/liteinvoice:latest
