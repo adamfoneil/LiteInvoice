@@ -17,7 +17,7 @@
 <details class="mt-3">
 	<summary>Import from Template</summary>
 	<div class="ms-4">
-		<RadzenDropDown Data="templateProjects" @bind-Value="templateProjectId" ValueProperty="Id" TextProperty="Name" Change="ImportTemplate" />
+		<RadzenDropDown Data="templateProjects" @bind-Value="templateProjectId" ValueProperty="Id" TextProperty="Name" Change="ImportTemplate" Disabled="projectId == 0" />
 	</div>	
 </details>
 
