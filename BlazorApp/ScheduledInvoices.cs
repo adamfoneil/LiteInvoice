@@ -28,20 +28,18 @@ public class ScheduledInvoices(
 
 		_logger.LogInformation("Running scheduled invoices for day {CurrentDay} (or {DayFromEnd} from end)", currentDay, dayFromEndOfMonth);
 
-		// Process existing project-based scheduled invoices
-		await ProcessProjectScheduledInvoices(db, currentDay, dayFromEndOfMonth);
-
-		// Process new customer-level automation
-		await ProcessCustomerAutomation(db, currentDay);
+		// Process scheduled invoices from ScheduledInvoice table
+		await ProcessScheduledInvoices(db, currentDay, dayFromEndOfMonth);
 	}
 
-	private async Task ProcessProjectScheduledInvoices(ApplicationDbContext db, int currentDay, int dayFromEndOfMonth)
+	private async Task ProcessScheduledInvoices(ApplicationDbContext db, int currentDay, int dayFromEndOfMonth)
 	{
 		var scheduledInvoices = await db
 			.ScheduledInvoices
 			.Include(inv => inv.Project)
 			.ThenInclude(p => p!.Customer)
 			.ThenInclude(c => c.Business)
+			.Include(inv => inv.TemplateProject)
 			.Where(row => (row.DayOfMonth == currentDay || row.DayOfMonth == dayFromEndOfMonth) && row.IsActive)
 			.ToArrayAsync();
 
@@ -51,17 +49,30 @@ public class ScheduledInvoices(
 			{
 				_logger.LogInformation("Processing scheduled invoice for project {ProjectName}", scheduledInvoice.Project.Name);
 				
-				// Create invoice from the scheduled invoice logic
-				var invoice = await db.CreateInvoiceAsync(scheduledInvoice.ProjectId, id => _hashids.Encode(id));
+				Invoice? invoice = null;
 				
-				_logger.LogInformation("Created invoice {InvoiceNumber} for project {ProjectName}", 
-					invoice.Number, scheduledInvoice.Project.Name);
-
-				// Send notification email if configured and AutoSend is enabled
-				if (scheduledInvoice.AutoSend)
+				if (scheduledInvoice.TemplateId.HasValue && scheduledInvoice.TemplateProject != null)
 				{
-					await SendInvoiceNotification(scheduledInvoice.Project.Customer.Business, 
-						scheduledInvoice.Project.Customer, invoice, "scheduled");
+					// Create invoice from template
+					invoice = await CreateInvoiceFromTemplate(db, scheduledInvoice);
+				}
+				else
+				{
+					// Create invoice from pending work
+					invoice = await db.CreateInvoiceAsync(scheduledInvoice.ProjectId, id => _hashids.Encode(id));
+				}
+				
+				if (invoice != null)
+				{
+					_logger.LogInformation("Created invoice {InvoiceNumber} for project {ProjectName}", 
+						invoice.Number, scheduledInvoice.Project.Name);
+
+					// Send notification email if configured and AutoSend is enabled
+					if (scheduledInvoice.AutoSend)
+					{
+						await SendInvoiceNotification(scheduledInvoice.Project.Customer.Business, 
+							scheduledInvoice.Project.Customer, invoice, "scheduled");
+					}
 				}
 			}
 			catch (Exception ex)
@@ -71,86 +82,35 @@ public class ScheduledInvoices(
 		}
 	}
 
-	private async Task ProcessCustomerAutomation(ApplicationDbContext db, int currentDay)
+	private async Task<Invoice?> CreateInvoiceFromTemplate(ApplicationDbContext db, ScheduledInvoice scheduledInvoice)
 	{
-		// Get customers with automation enabled for today
-		var customersToProcess = await db
-			.Customers
-			.Include(c => c.Business)
-			.Include(c => c.AutoPostTemplate)
-			.Include(c => c.Projects.Where(p => p.IsActive))
-			.Where(c => c.AutoPostDayOfMonth == currentDay)
-			.ToArrayAsync();
-
-		foreach (var customer in customersToProcess)
+		if (scheduledInvoice.TemplateProject == null)
 		{
-			try
-			{
-				_logger.LogInformation("Processing automated invoicing for customer {CustomerName}", customer.Name);
-				
-				if (customer.AutoPostTemplateId.HasValue && customer.AutoPostTemplate != null)
-				{
-					// Use template project
-					var invoice = await CreateInvoiceFromTemplate(db, customer);
-					if (invoice != null)
-					{
-						await SendInvoiceNotification(customer.Business, customer, invoice, "automated template");
-					}
-				}
-				else
-				{
-					// Post pending hours/expenses for customer's active projects
-					var invoices = await CreateInvoiceFromPendingWork(db, customer);
-					foreach (var invoice in invoices)
-					{
-						await SendInvoiceNotification(customer.Business, customer, invoice, "automated pending work");
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Failed to create automated invoice for customer {CustomerId}", customer.Id);
-			}
-		}
-	}
-
-	private async Task<Invoice?> CreateInvoiceFromTemplate(ApplicationDbContext db, Customer customer)
-	{
-		if (customer.AutoPostTemplate == null)
-		{
-			_logger.LogWarning("Customer {CustomerName} has AutoPostTemplateId but template not found", customer.Name);
+			_logger.LogWarning("ScheduledInvoice {Id} has TemplateId but template project not found", scheduledInvoice.Id);
 			return null;
 		}
 
-		if (!customer.AutoPostTemplate.IsTemplate)
+		if (!scheduledInvoice.TemplateProject.IsTemplate)
 		{
-			_logger.LogWarning("Project {ProjectName} is referenced as template but IsTemplate is false", customer.AutoPostTemplate.Name);
+			_logger.LogWarning("Project {ProjectName} is referenced as template but IsTemplate is false", scheduledInvoice.TemplateProject.Name);
 			return null;
 		}
 
-		_logger.LogInformation("Creating invoice from template {TemplateName} for customer {CustomerName}", 
-			customer.AutoPostTemplate.Name, customer.Name);
+		_logger.LogInformation("Creating invoice from template {TemplateName} for project {ProjectName}", 
+			scheduledInvoice.TemplateProject.Name, scheduledInvoice.Project.Name);
 		
 		// Get template hours and expenses
 		var templateHours = await db.Hours
-			.Where(h => h.ProjectId == customer.AutoPostTemplateId)
+			.Where(h => h.ProjectId == scheduledInvoice.TemplateId)
 			.ToArrayAsync();
 		
 		var templateExpenses = await db.Expenses
-			.Where(e => e.ProjectId == customer.AutoPostTemplateId)
+			.Where(e => e.ProjectId == scheduledInvoice.TemplateId)
 			.ToArrayAsync();
 
 		if (!templateHours.Any() && !templateExpenses.Any())
 		{
-			_logger.LogInformation("Template {TemplateName} has no hours or expenses to copy", customer.AutoPostTemplate.Name);
-			return null;
-		}
-
-		// Find the first active, non-template project for this customer to copy template entries to
-		var targetProject = customer.Projects.FirstOrDefault(p => p.IsActive && !p.IsTemplate);
-		if (targetProject == null)
-		{
-			_logger.LogWarning("No active non-template project found for customer {CustomerName} to apply template", customer.Name);
+			_logger.LogInformation("Template {TemplateName} has no hours or expenses to copy", scheduledInvoice.TemplateProject.Name);
 			return null;
 		}
 
@@ -160,7 +120,7 @@ public class ScheduledInvoices(
 		{
 			var newHour = new HoursEntry
 			{
-				ProjectId = targetProject.Id,
+				ProjectId = scheduledInvoice.ProjectId,
 				Date = currentDate,
 				Description = templateHour.Description,
 				Rate = templateHour.Rate,
@@ -177,7 +137,7 @@ public class ScheduledInvoices(
 		{
 			var newExpense = new ExpenseEntry
 			{
-				ProjectId = targetProject.Id,
+				ProjectId = scheduledInvoice.ProjectId,
 				Date = currentDate,
 				Description = templateExpense.Description,
 				Amount = templateExpense.Amount,
@@ -192,50 +152,13 @@ public class ScheduledInvoices(
 		await db.SaveChangesAsync();
 
 		// Now create the invoice from the copied entries
-		var invoice = await db.CreateInvoiceAsync(targetProject.Id, id => _hashids.Encode(id), 
-			$"Automated invoice from template {customer.AutoPostTemplate.Name} for {DateTime.UtcNow:MMMM yyyy}");
+		var invoice = await db.CreateInvoiceAsync(scheduledInvoice.ProjectId, id => _hashids.Encode(id), 
+			$"Automated invoice from template {scheduledInvoice.TemplateProject.Name} for {DateTime.UtcNow:MMMM yyyy}");
 		
 		_logger.LogInformation("Created template-based invoice {InvoiceNumber} for project {ProjectName} using template {TemplateName}", 
-			invoice.Number, targetProject.Name, customer.AutoPostTemplate.Name);
+			invoice.Number, scheduledInvoice.Project.Name, scheduledInvoice.TemplateProject.Name);
 
 		return invoice;
-	}
-
-	private async Task<List<Invoice>> CreateInvoiceFromPendingWork(ApplicationDbContext db, Customer customer)
-	{
-		var invoices = new List<Invoice>();
-		var projectsWithPendingWork = customer.Projects
-			.Where(p => p.IsActive && !p.IsTemplate)
-			.ToList();
-
-		foreach (var project in projectsWithPendingWork)
-		{
-			// Check if project has pending billable hours or expenses
-			var hasPendingHours = await db.Hours
-				.AnyAsync(h => h.ProjectId == project.Id && h.AddToInvoice);
-			
-			var hasPendingExpenses = await db.Expenses
-				.AnyAsync(e => e.ProjectId == project.Id && e.AddToInvoice);
-
-			if (hasPendingHours || hasPendingExpenses)
-			{
-				_logger.LogInformation("Creating invoice for pending work on project {ProjectName}", project.Name);
-				
-				var invoice = await db.CreateInvoiceAsync(project.Id, id => _hashids.Encode(id), 
-					$"Automated invoice for {DateTime.UtcNow:MMMM yyyy}");
-				
-				_logger.LogInformation("Created automated invoice {InvoiceNumber} for project {ProjectName}", 
-					invoice.Number, project.Name);
-
-				invoices.Add(invoice);
-			}
-			else
-			{
-				_logger.LogInformation("No pending work found for project {ProjectName}", project.Name);
-			}
-		}
-
-		return invoices;
 	}
 
 	private async Task SendInvoiceNotification(Business business, Customer customer, Invoice invoice, string automationType)

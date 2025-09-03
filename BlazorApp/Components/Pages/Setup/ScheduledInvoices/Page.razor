@@ -1,0 +1,96 @@
+@page "/Setup/ScheduledInvoices"
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ViewState View
+
+<h3>Scheduled Invoices</h3>
+<RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="Refresh" Placeholder="business" />
+
+<GridInsertButton TItem="ScheduledInvoice" Grid="grid" OnCreateItem="() => new()" />
+<RadzenDataGrid TItem="ScheduledInvoice" Data="scheduledInvoices" @ref="grid" RowCreate="SaveScheduledInvoice" RowUpdate="SaveScheduledInvoice">
+	<Columns>
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Project" Width="300px">
+			<Template>
+				@context.Project.Customer.Name - @context.Project.Name
+			</Template>
+			<EditTemplate>
+				<RadzenDropDown @bind-Value="context.ProjectId" Data="projectsByBusiness[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Placeholder="Select Project" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Day of Month" Property="DayOfMonth" Width="100px">
+			<EditTemplate>
+				<RadzenNumeric @bind-Value="context.DayOfMonth" Min="-31" Max="31" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Template Project" Property="TemplateProject.Name">
+			<EditTemplate>
+				<RadzenDropDown @bind-Value="context.TemplateId" Data="templateProjects" ValueProperty="Id" TextProperty="Name" Placeholder="Select Template (Optional)" AllowClear="true" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Auto Send" Property="AutoSend" Width="120px">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.AutoSend" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Active" Property="IsActive" Width="80px">
+			<EditTemplate>
+				<RadzenSwitch @bind-Value="context.IsActive" />
+			</EditTemplate>
+		</RadzenDataGridColumn>
+		<GridControls TItem="ScheduledInvoice" Grid="grid" DeleteRow="DeleteScheduledInvoice" />
+	</Columns>
+</RadzenDataGrid>
+
+@code {
+	private ApplicationUser user = new();
+	private Business[] businesses = [];
+	private ILookup<int, Project> projectsByBusiness = Enumerable.Empty<Project>().ToLookup(p => p.Customer.BusinessId);
+	private Project[] templateProjects = [];
+	private RadzenDataGrid<ScheduledInvoice>? grid;
+	private ScheduledInvoice[] scheduledInvoices = [];
+
+	protected override async Task OnInitializedAsync()
+	{
+		user = await CurrentUser.GetAsync();
+
+		using var db = DbFactory.CreateDbContext();
+		businesses = await db.Businesses.Where(b => b.UserId == user.UserId).ToArrayAsync();
+		
+		var projects = await db.Projects
+			.Include(p => p.Customer)
+			.Where(p => p.Customer.Business.UserId == user.UserId)
+			.ToArrayAsync();
+		projectsByBusiness = projects.ToLookup(p => p.Customer.BusinessId);
+		
+		templateProjects = projects.Where(p => p.IsTemplate).ToArray();
+
+		View.Initialize(businesses);
+
+		await Refresh();
+	}
+
+	private async Task Refresh()
+	{
+		using var db = DbFactory.CreateDbContext();
+		scheduledInvoices = await db.ScheduledInvoices
+			.Include(si => si.Project)
+			.ThenInclude(p => p.Customer)
+			.Include(si => si.TemplateProject)
+			.Where(si => si.Project.Customer.BusinessId == View.BusinessId)
+			.ToArrayAsync();
+	}
+
+	private async Task SaveScheduledInvoice(ScheduledInvoice row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.CurrentUser = user.UserName;
+		db.ScheduledInvoices.Update(row);
+		await db.SaveChangesAsync();
+	}
+
+	private async Task DeleteScheduledInvoice(ScheduledInvoice row)
+	{
+		using var db = DbFactory.CreateDbContext();
+		db.ScheduledInvoices.Remove(row);
+		await db.SaveChangesAsync();
+	}
+}
