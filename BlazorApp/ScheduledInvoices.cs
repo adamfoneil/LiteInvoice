@@ -9,12 +9,12 @@ namespace BlazorApp;
 public class ScheduledInvoices(
 	IDbContextFactory<ApplicationDbContext> dbFactory,
 	ILogger<ScheduledInvoices> logger,
-	IHashids hashids,
+	Hashids hashids,
 	IEmailSender? emailSender = null) : IInvocable
 {
 	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;
 	private readonly ILogger<ScheduledInvoices> _logger = logger;
-	private readonly IHashids _hashids = hashids;
+	private readonly Hashids _hashids = hashids;
 	private readonly IEmailSender? _emailSender = emailSender;
 
 	public async Task Invoke()
