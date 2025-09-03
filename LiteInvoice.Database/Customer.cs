@@ -17,8 +17,17 @@ public class Customer : BaseEntity, IContactInfo
 	public string? State { get; set; } = default!;
 	public string? Zip { get; set; } = default!;
 	public decimal HourlyRate { get; set; }
+	/// <summary>
+	/// Day of month to automatically post invoices. If null, no automatic posting occurs.
+	/// </summary>
+	public int? AutoPostDayOfMonth { get; set; }
+	/// <summary>
+	/// Template project ID to use for automatic invoices. If null, posts pending hours/expenses.
+	/// </summary>
+	public int? AutoPostTemplateId { get; set; }
 
 	public Business Business { get; set; } = default!;
+	public Project? AutoPostTemplate { get; set; }
 	public ICollection<Project> Projects { get; set; } = [];	
 	public ICollection<PaymentMethodCustomer> PaymentMethodCustomers { get; set; } = [];
 }
@@ -29,6 +38,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
 	{
 		builder.HasIndex(e => new { e.BusinessId, e.Name }).IsUnique();
 		builder.HasOne(e => e.Business).WithMany(e => e.Customers).HasForeignKey(e => e.BusinessId).OnDelete(DeleteBehavior.Restrict);
+		builder.HasOne(e => e.AutoPostTemplate).WithMany().HasForeignKey(e => e.AutoPostTemplateId).OnDelete(DeleteBehavior.Restrict);
 		builder.Property(e => e.Address).HasMaxLength(100);
 		builder.Property(e => e.Name).HasMaxLength(100);
 		builder.Property(e => e.Contact).HasMaxLength(100);
