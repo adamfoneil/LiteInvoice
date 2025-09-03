@@ -8,12 +8,15 @@
 <GridInsertButton TItem="ScheduledInvoice" Grid="grid" OnCreateItem="() => new()" />
 <RadzenDataGrid TItem="ScheduledInvoice" Data="scheduledInvoices" @ref="grid" RowCreate="SaveScheduledInvoice" RowUpdate="SaveScheduledInvoice">
 	<Columns>
-		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Project" Property="Project.Name">
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Project" Width="300px">
+			<Template>
+				@context.Project.Customer.Name - @context.Project.Name
+			</Template>
 			<EditTemplate>
 				<RadzenDropDown @bind-Value="context.ProjectId" Data="projectsByBusiness[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Placeholder="Select Project" />
 			</EditTemplate>
 		</RadzenDataGridColumn>
-		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Day of Month" Property="DayOfMonth">
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Day of Month" Property="DayOfMonth" Width="100px">
 			<EditTemplate>
 				<RadzenNumeric @bind-Value="context.DayOfMonth" Min="-31" Max="31" />
 			</EditTemplate>
@@ -23,12 +26,12 @@
 				<RadzenDropDown @bind-Value="context.TemplateId" Data="templateProjects" ValueProperty="Id" TextProperty="Name" Placeholder="Select Template (Optional)" AllowClear="true" />
 			</EditTemplate>
 		</RadzenDataGridColumn>
-		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Auto Send" Property="AutoSend">
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Auto Send" Property="AutoSend" Width="120px">
 			<EditTemplate>
 				<RadzenSwitch @bind-Value="context.AutoSend" />
 			</EditTemplate>
 		</RadzenDataGridColumn>
-		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Active" Property="IsActive">
+		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Active" Property="IsActive" Width="80px">
 			<EditTemplate>
 				<RadzenSwitch @bind-Value="context.IsActive" />
 			</EditTemplate>
@@ -61,6 +64,8 @@
 		templateProjects = projects.Where(p => p.IsTemplate).ToArray();
 
 		View.Initialize(businesses);
+
+		await Refresh();
 	}
 
 	private async Task Refresh()
