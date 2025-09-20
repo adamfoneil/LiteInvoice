@@ -1,8 +1,8 @@
 ﻿using Coravel.Invocable;
+using CoreNotify.MailerSend;
+using HashidsNet;
 using LiteInvoice.Database;
 using Microsoft.EntityFrameworkCore;
-using HashidsNet;
-using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace BlazorApp;
 
@@ -10,17 +10,17 @@ public class ScheduledInvoices(
 	IDbContextFactory<ApplicationDbContext> dbFactory,
 	ILogger<ScheduledInvoices> logger,
 	Hashids hashids,
-	IEmailSender? emailSender = null) : IInvocable
+	MailerSendClient mailClient) : IInvocable
 {
 	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;
 	private readonly ILogger<ScheduledInvoices> _logger = logger;
 	private readonly Hashids _hashids = hashids;
-	private readonly IEmailSender? _emailSender = emailSender;
+	private readonly MailerSendClient _mailClient = mailClient;    
 
 	public async Task Invoke()
 	{
 		using var db = _dbFactory.CreateDbContext();
-		db.CurrentUser = "system";
+		db.CurrentUser = "scheduler";
 
 		int currentDay = DateTime.UtcNow.Day;
 		int daysInMonth = DateTime.DaysInMonth(DateTime.UtcNow.Year, DateTime.UtcNow.Month);
@@ -47,39 +47,45 @@ public class ScheduledInvoices(
 		{
 			try
 			{
-				_logger.LogInformation("Processing scheduled invoice for project {ProjectName}", scheduledInvoice.Project.Name);
-				
-				Invoice? invoice = null;
-				
-				if (scheduledInvoice.TemplateId.HasValue && scheduledInvoice.TemplateProject != null)
-				{
-					// Create invoice from template
-					invoice = await CreateInvoiceFromTemplate(db, scheduledInvoice);
-				}
-				else
-				{
-					// Create invoice from pending work
-					invoice = await db.CreateInvoiceAsync(scheduledInvoice.ProjectId, id => _hashids.Encode(id));
-				}
-				
-				if (invoice != null)
-				{
-					_logger.LogInformation("Created invoice {InvoiceNumber} for project {ProjectName}", 
-						invoice.Number, scheduledInvoice.Project.Name);
-
-					// Send notification email if configured and AutoSend is enabled
-					if (scheduledInvoice.AutoSend)
-					{
-						await SendInvoiceNotification(scheduledInvoice.Project.Customer.Business, 
-							scheduledInvoice.Project.Customer, invoice, "scheduled");
-					}
-				}
+				await ProcessSingleScheduledInvoice(db, scheduledInvoice, "Scheduled");
 			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Failed to create scheduled invoice for project {ProjectId}", scheduledInvoice.ProjectId);
 			}
 		}
+	}
+
+	public async Task TestScheduledInvoiceAsync(ScheduledInvoice scheduledInvoice)
+	{
+		using var db = _dbFactory.CreateDbContext();
+		await ProcessSingleScheduledInvoice(db, scheduledInvoice, "Test");
+	}
+
+	private async Task ProcessSingleScheduledInvoice(ApplicationDbContext db, ScheduledInvoice scheduledInvoice, string invokeType)
+	{
+		_logger.LogInformation("Processing {invokeType} invoice for project {ProjectName}", invokeType, scheduledInvoice.Project.Name);
+
+		Invoice? invoice = null;
+
+		if (scheduledInvoice.TemplateId.HasValue && scheduledInvoice.TemplateProject != null)
+		{
+			// Create invoice from template
+			invoice = await CreateInvoiceFromTemplate(db, scheduledInvoice);
+		}
+		else
+		{
+			// Create invoice from pending work
+			invoice = await db.CreateInvoiceAsync(scheduledInvoice.ProjectId, id => _hashids.Encode(id));
+		}
+
+		if (invoice is null) throw new Exception("Invoice creation failed");
+
+		_logger.LogInformation("Created {invokeType} invoice {InvoiceNumber} for project {ProjectName}", 
+			invokeType, invoice.Number, scheduledInvoice.Project.Name);
+				
+		await SendInvoiceNotification(scheduledInvoice.Project.Customer.Business, 
+			scheduledInvoice.Project.Customer, invoice, invokeType);		
 	}
 
 	private async Task<Invoice?> CreateInvoiceFromTemplate(ApplicationDbContext db, ScheduledInvoice scheduledInvoice)
@@ -126,7 +132,7 @@ public class ScheduledInvoices(
 				Rate = templateHour.Rate,
 				Hours = templateHour.Hours,
 				AddToInvoice = true,
-				CreatedBy = "system",
+				CreatedBy = "scheduler",
 				CreatedAt = DateTime.UtcNow
 			};
 			db.Hours.Add(newHour);
@@ -142,7 +148,7 @@ public class ScheduledInvoices(
 				Description = templateExpense.Description,
 				Amount = templateExpense.Amount,
 				AddToInvoice = true,
-				CreatedBy = "system",
+				CreatedBy = "scheduler",
 				CreatedAt = DateTime.UtcNow
 			};
 			db.Expenses.Add(newExpense);
@@ -161,19 +167,13 @@ public class ScheduledInvoices(
 		return invoice;
 	}
 
-	private async Task SendInvoiceNotification(Business business, Customer customer, Invoice invoice, string automationType)
+	private async Task SendInvoiceNotification(Business business, Customer customer, Invoice invoice, string invokeType)
 	{
-		if (_emailSender == null)
-		{
-			_logger.LogInformation("Email sender not configured, skipping notification for invoice {InvoiceNumber}", invoice.Number);
-			return;
-		}
-
 		try
 		{
 			var subject = $"Automated Invoice #{invoice.Number} Created - {customer.Name}";
 			var body = $@"
-An {automationType} invoice has been automatically created:
+An {invokeType} invoice has been created:
 
 Customer: {customer.Name}
 Invoice Number: {invoice.Number}
@@ -186,7 +186,7 @@ This is an automated notification from LiteInvoice.
 ";
 
 			// Send notification to business owner
-			await _emailSender.SendEmailAsync(business.Email, subject, body);
+			await _mailClient.SendAsync(new() { To = [business.Email], Subject = subject, Text = body });
 			
 			_logger.LogInformation("Sent invoice notification email for invoice {InvoiceNumber} to {BusinessEmail}", 
 				invoice.Number, business.Email);

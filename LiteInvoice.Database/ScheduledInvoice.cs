@@ -17,8 +17,7 @@ public class ScheduledInvoice : BaseEntity
 	/// <summary>
 	/// if this is a template invoice, then use this as the base for the scheduled invoice	
 	/// </summary>
-	public int? TemplateId { get; set; }
-	public bool AutoSend { get; set; }
+	public int? TemplateId { get; set; }	
 	public bool IsActive { get; set; } = true;
 
 	public Project Project { get; set; } = default!;
