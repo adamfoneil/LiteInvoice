@@ -3,6 +3,7 @@ using CoreNotify.MailerSend;
 using HashidsNet;
 using LiteInvoice.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BlazorApp;
 
@@ -10,12 +11,14 @@ public class ScheduledInvoices(
 	IDbContextFactory<ApplicationDbContext> dbFactory,
 	ILogger<ScheduledInvoices> logger,
 	Hashids hashids,
-	MailerSendClient mailClient) : IInvocable
+	MailerSendClient mailClient,
+	string baseUrl) : IInvocable
 {
 	private readonly IDbContextFactory<ApplicationDbContext> _dbFactory = dbFactory;
 	private readonly ILogger<ScheduledInvoices> _logger = logger;
 	private readonly Hashids _hashids = hashids;
 	private readonly MailerSendClient _mailClient = mailClient;    
+	private readonly string _baseUrl = baseUrl;
 
 	public async Task Invoke()
 	{
@@ -56,9 +59,17 @@ public class ScheduledInvoices(
 		}
 	}
 
-	public async Task TestScheduledInvoiceAsync(ScheduledInvoice scheduledInvoice)
+	public async Task TestScheduledInvoiceAsync(int scheduledInvoiceId)
 	{
 		using var db = _dbFactory.CreateDbContext();
+
+		var scheduledInvoice = await db.ScheduledInvoices
+			.Include(si => si.Project)
+			.ThenInclude(p => p.Customer)
+			.ThenInclude(c => c.Business)
+			.Include(si => si.TemplateProject)
+			.SingleAsync(row => row.Id == scheduledInvoiceId);
+
 		await ProcessSingleScheduledInvoice(db, scheduledInvoice, "Test");
 	}
 
@@ -133,7 +144,7 @@ public class ScheduledInvoices(
 				Hours = templateHour.Hours,
 				AddToInvoice = true,
 				CreatedBy = "scheduler",
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = DateTime.Now
 			};
 			db.Hours.Add(newHour);
 		}
@@ -149,7 +160,7 @@ public class ScheduledInvoices(
 				Amount = templateExpense.Amount,
 				AddToInvoice = true,
 				CreatedBy = "scheduler",
-				CreatedAt = DateTime.UtcNow
+				CreatedAt = DateTime.Now
 			};
 			db.Expenses.Add(newExpense);
 		}
@@ -171,7 +182,7 @@ public class ScheduledInvoices(
 	{
 		try
 		{
-			var subject = $"Automated Invoice #{invoice.Number} Created - {customer.Name}";
+			var subject = $"{invokeType} Invoice #{invoice.Number} Created - {customer.Name}";
 			var body = $@"
 An {invokeType} invoice has been created:
 
@@ -179,6 +190,7 @@ Customer: {customer.Name}
 Invoice Number: {invoice.Number}
 Amount Due: {invoice.AmountDue:C}
 Date: {invoice.Date:yyyy-MM-dd}
+Link: {_baseUrl}/Invoice/{invoice.HashId}
 
 Please review the invoice and take any necessary action.
 

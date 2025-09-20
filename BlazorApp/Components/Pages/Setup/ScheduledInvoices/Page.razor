@@ -35,7 +35,7 @@
 
 		<RadzenDataGridColumn TItem="ScheduledInvoice">
 			<Template>
-				<RadzenButton Text="Test" Click="() => TestInvoice(context)" />
+				<RadzenButton Text="Test" Click="() => TestInvoice(context.Id)" />
 			</Template>
 		</RadzenDataGridColumn>				
 
@@ -97,9 +97,9 @@
 		await db.SaveChangesAsync();
 	}
 
-	private async Task TestInvoice(ScheduledInvoice scheduledInvoice)
+	private async Task TestInvoice(int scheduledInvoiceId)
 	{
-		await ScheduledInvoices.TestScheduledInvoiceAsync(scheduledInvoice);
+		await ScheduledInvoices.TestScheduledInvoiceAsync(scheduledInvoiceId);
 		await Dialogs.Alert("Test invoice created; please check your email.");
 	}
 }

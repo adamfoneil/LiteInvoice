@@ -62,9 +62,12 @@ public partial class ApplicationDbContext
 		Expenses.RemoveRange(expenses);
 		await SaveChangesAsync();
 
-		await Invoices.Where(row => row.Id == invoice.Id)
-			.ExecuteUpdateAsync(row => row.SetProperty(i => i.HashId, hashMethod(invoice.Id)));
+		var invoiceHashId = hashMethod(invoice.Id);
 
+		await Invoices.Where(row => row.Id == invoice.Id)
+			.ExecuteUpdateAsync(row => row.SetProperty(i => i.HashId, invoiceHashId));
+
+		invoice.HashId = invoiceHashId;
 		return invoice;
 	}
 

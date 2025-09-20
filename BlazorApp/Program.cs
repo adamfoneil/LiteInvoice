@@ -27,7 +27,14 @@ builder.Services.AddHttpClient();
 builder.Services.AddRadzenComponents();
 builder.Services.AddRazorPages();
 
-builder.Services.AddSingleton<ScheduledInvoices>();
+var baseUrl = builder.Configuration["App:BaseUrl"] ?? "https://localhost:5041";
+builder.Services.AddSingleton(sp => new ScheduledInvoices(
+    sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>(),
+    sp.GetRequiredService<ILogger<ScheduledInvoices>>(),
+    sp.GetRequiredService<Hashids>(),
+    sp.GetRequiredService<CoreNotify.MailerSend.MailerSendClient>(),
+    baseUrl));
+
 builder.Services.AddSingleton(sp => new Hashids(
 	builder.Configuration["Hashids:Salt"], 
 	minHashLength: int.TryParse(builder.Configuration["Hashids:MinLength"], out var value) ? value : 6));

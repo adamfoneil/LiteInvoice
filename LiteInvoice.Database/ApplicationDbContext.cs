@@ -52,7 +52,7 @@ public partial class ApplicationDbContext(DbContextOptions<ApplicationDbContext>
 			{
 				entry.Entity.ModifiedBy = CurrentUser ?? "system";
 				entry.Entity.ModifiedAt = DateTime.Now;
-			}			
+			}
 		}
 
 		return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
