@@ -6,12 +6,12 @@
 <h3>Scheduled Invoices</h3>
 <RadzenDropDown @bind-Value="View.BusinessId" Data="businesses" ValueProperty="Id" TextProperty="Name" Change="Refresh" Placeholder="business" />
 
-<GridInsertButton TItem="ScheduledInvoice" Grid="grid" OnCreateItem="() => new()" />
+<GridInsertButton TItem="ScheduledInvoice" Grid="grid" OnCreateItem="() => new() { DayOfMonth = 1 }" />
 <RadzenDataGrid TItem="ScheduledInvoice" Data="scheduledInvoices" @ref="grid" RowCreate="SaveScheduledInvoice" RowUpdate="SaveScheduledInvoice">
 	<Columns>
 		<RadzenDataGridColumn TItem="ScheduledInvoice" Title="Project" Width="300px">
 			<Template>
-				@context.Project.Customer.Name - @context.Project.Name
+				@context.Project?.Customer.Name - @context.Project?.Name
 			</Template>
 			<EditTemplate>
 				<RadzenDropDown @bind-Value="context.ProjectId" Data="projectsByBusiness[View.BusinessId]" ValueProperty="Id" TextProperty="Name" Placeholder="Select Project" />
@@ -84,10 +84,17 @@
 
 	private async Task SaveScheduledInvoice(ScheduledInvoice row)
 	{
-		using var db = DbFactory.CreateDbContext();
-		db.CurrentUser = user.UserName;
-		db.ScheduledInvoices.Update(row);
-		await db.SaveChangesAsync();
+		try
+		{
+			using var db = DbFactory.CreateDbContext();
+			db.CurrentUser = user.UserName;
+			db.ScheduledInvoices.Update(row);
+			await db.SaveChangesAsync();
+		}
+		catch (Exception exc)
+		{
+			await Dialogs.Alert("Error saving scheduled invoice: " + exc.Message);
+		}
 	}
 
 	private async Task DeleteScheduledInvoice(ScheduledInvoice row)
@@ -95,6 +102,7 @@
 		using var db = DbFactory.CreateDbContext();
 		db.ScheduledInvoices.Remove(row);
 		await db.SaveChangesAsync();
+		await Refresh();
 	}
 
 	private async Task TestInvoice(int scheduledInvoiceId)
